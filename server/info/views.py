@@ -24,6 +24,8 @@ from info.permissions import IsTo
 # http -a deepak:deepaksaini GET http://127.0.0.1:8000/journeys/
 #3) token based authentication:
 # http GET http://127.0.0.1:8000/notifications/ "Authorization: Token 2c2670e251bfcacd19b09dff689447a513edb7db"
+# But enabling BasicAuthentication along with token authentication has issues in logout from the REST api web interface. So diable it and use only token
+# authentication
 
 
 
