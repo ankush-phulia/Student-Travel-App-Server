@@ -14,6 +14,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from info.models import *
 from info.serializers import *
 from info.permissions import IsTo
+
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
 # See this for an overview tutorial
