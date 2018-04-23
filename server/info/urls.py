@@ -4,6 +4,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
     url(r'^notifications/$', views.NotificationList.as_view()),
+    url(r'^journeys/$', views.JourneyList.as_view()),
     url(r'^notifications/(?P<username>[0-9a-zA-Z_@.-]+)/$', views.UserNotifications.as_view()),
     url(r'^api-auth/', include('rest_framework.urls')),
 ]
