@@ -2,9 +2,14 @@ from rest_framework import serializers
 from info.models import *
 from django.contrib.auth.models import User
 
+class UserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		fields = ('id', 'username','first_name','last_name','email')
+
 class NotificationSerializer(serializers.ModelSerializer):
-	user_from = serializers.CharField(source="user_from.username")
-	user_to = serializers.CharField(source="user_to.username")
+	user_from = UserSerializer()
+	user_to = UserSerializer()
 
 	class Meta:
 		model = Notification
@@ -21,10 +26,6 @@ class JourneyPointSerializer(serializers.ModelSerializer):
 		model = JourneyPoint
 		fields = ("location_name","latitude","longitude",)
 
-class UserSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = User
-		fields = ('id', 'username','first_name','last_name','email')
 
 class UserInfoSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
