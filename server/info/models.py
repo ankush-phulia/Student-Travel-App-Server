@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
+SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
 
 class UserInfo(models.Model):
 	user = models.ForeignKey(User,on_delete=models.CASCADE)
+	sex = models.CharField(choices=SEX_TYPES,max_length=50)
 	facebook_link = models.CharField(max_length=200)
 
 	def __str__(self):
@@ -14,7 +16,8 @@ class UserInfo(models.Model):
 class Notification(models.Model):
 	user_from = models.ForeignKey(User, related_name="user_from", on_delete=models.CASCADE,null=True)
 	user_to = models.ForeignKey(User, related_name="user_to", on_delete=models.CASCADE)
-	text = models.TextField()
+	title = models.TextField()
+	description = models.TextField()
 	notif_type = models.CharField(choices=NOTIFICATION_TYPES, default="Logistics Related", max_length=100)
 	creation_time = models.DateTimeField()
 	class Meta:

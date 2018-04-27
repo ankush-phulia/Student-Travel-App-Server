@@ -8,7 +8,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Notification
-		fields = ("user_from","user_to","text","notif_type","creation_time",)
+		fields = ("user_from","user_to","title","description","notif_type","creation_time",)
 
 	def create(self,validated_data):
 		# print(">>>>>>>>>>",validated_data.pop('user_to'))
@@ -30,7 +30,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
 	class Meta:
 		model = UserInfo
-		fields = ('user','facebook_link')
+		fields = ('user','sex','facebook_link')
 
 class JourneySerializer(serializers.ModelSerializer):
 	checkpoints = JourneyPointSerializer(many=True)
