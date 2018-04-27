@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 # from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -88,3 +89,11 @@ class UserNotifications(APIView):
 		notifs = self.get_user_notifications(username)
 		notifs.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
+
+@login_required
+def home(request):
+	return redirect("dashboard")
+
+@login_required
+def Dashboard(request):
+	return render(request, "info/dashboard.html",{})
