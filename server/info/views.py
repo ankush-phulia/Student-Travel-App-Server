@@ -22,6 +22,7 @@ from info.permissions import IsTo
 # https://www.andreagrandi.it/2016/10/01/creating-a-production-ready-api-with-python-and-django-rest-framework-part-2/
 #1) To get token for the user:
 # http --json POST http://127.0.0.1:8000/api-token-auth/ username="deepak" password="deepaksaini"
+# curl -X POST http://127.0.0.1:8000/api-token-auth/ -d "username=deepak&password=deepaksaini"
 #2) username, pass based authentication using BasicAuthentication:
 # http -a deepak:deepaksaini GET http://127.0.0.1:8000/journeys/
 #3) token based authentication:
@@ -29,7 +30,13 @@ from info.permissions import IsTo
 # But enabling BasicAuthentication along with token authentication has issues in logout from the REST api web interface. So diable it and use only token
 # authentication
 
+class UserInformation(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
 
+	def get(self,request,format=None):
+		user_object = UserInfo.objects.filter(user=request.user)
+		serializer = UserInfoSerializer(user_object, many=True)
+		return Response(serializer.data)
 
 class NotificationList(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
