@@ -1,5 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django import forms
+from django.shortcuts import render, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+# from .forms import UserForm
+from django.forms.models import inlineformset_factory
+from django.core.exceptions import PermissionDenied
 # from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,6 +23,9 @@ from info.models import *
 from info.serializers import *
 from info.permissions import IsTo
 
+from material import *
+from django_tables2 import RequestConfig
+import django_tables2 as tables
 
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
@@ -90,10 +100,141 @@ class UserNotifications(APIView):
 		notifs.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
+class LoginForm(forms.Form):
+	email = forms.EmailField()
+	password = forms.CharField(widget=forms.PasswordInput)
+	keep_logged = forms.BooleanField(required=False, label="Keep me logged in")
+
 @login_required
 def home(request):
 	return redirect("dashboard")
 
+class UserInfoTable(tables.Table):
+	Username = tables.Column()
+
+	class Meta:
+		template_name = "django_tables2/bootstrap.html"
+
 @login_required
 def Dashboard(request):
-	return render(request, "info/dashboard.html",{})
+	user = request.user
+	userinfo = UserInfo.objects.get(user=user)
+	data = {"email":user.email,"first_name":user.first_name,"last_name":user.last_name,"gender":userinfo.sex,
+			"bio":userinfo.bio,"facebook_link":userinfo.facebook_link}
+	print("Data is ")
+	print(data)
+	table = UserInfoTable(data)
+	RequestConfig(request).configure(table)
+	return render(request, "info/dashboard.html",{"table":table})
+
+
+class UserProfileForm(forms.ModelForm):
+	class Meta:
+		model = User
+		fields = ['first_name', 'last_name', 'email']
+
+class ModifyInfoForm(forms.Form):
+	email = forms.EmailField(label="Email Address",required=True)
+	password = forms.CharField(widget=forms.PasswordInput,required=True)
+	password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=True)
+	first_name = forms.CharField(required=False,initial="")
+	last_name = forms.CharField(required=False,initial="")
+	bio = forms.CharField( widget=forms.Textarea, required=False,initial="")
+	facebook_link = forms.CharField(required=False,initial="")
+
+	gender = forms.ChoiceField(choices=((None, ''), ('F', 'Female'), ('M', 'Male'), ('O', 'Other')))
+
+	layout = Layout(Fieldset("Modify your details here.", 'email',
+					Row('password', 'password_confirm'),
+					Fieldset('Pesonal details',
+							 Row('first_name', 'last_name'),
+							 'bio','facebook_link','gender')))
+
+@login_required
+def edit_user(request):
+	user = request.user
+	userinfo = UserInfo.objects.get(user=user)
+	if(request.method=="GET"):
+		form = ModifyInfoForm(initial={"email":user.email,"password":user.password,
+			"first_name":user.first_name,"last_name":user.last_name,"gender":userinfo.sex,
+			"bio":userinfo.bio,"facebook_link":userinfo.facebook_link})
+		return render(request, "info/account_update.html",{"form":form})
+		error = ""
+	elif(request.method=="POST"):
+		form = RegistrationForm(request.POST)
+		if form.is_valid():
+
+			email = form.cleaned_data["email"]
+			password = form.cleaned_data["password"]
+			password_confirm = form.cleaned_data["password_confirm"]
+			if(password!=password_confirm):
+				error= "Sorry. The passwords don't match!"
+				return render(request,'info/register.html', locals())
+
+			first_name = form.cleaned_data["first_name"]
+			last_name = form.cleaned_data["first_name"]
+			gender = form.cleaned_data["first_name"]
+			agree_toc = form.cleaned_data["agree_toc"]
+			bio = form.cleaned_data["bio"]
+			facebook_link = form.cleaned_data["facebook_link"]
+			# user = User.objects.create(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
+			# UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link)
+			return redirect("/dashboard/")
+		else:
+			error = "The form is not valid. Some of the required fields not entered."
+			return render(request,'info/register.html', locals())
+
+
+class RegistrationForm(forms.Form):
+	username = forms.CharField(required=True)
+	email = forms.EmailField(label="Email Address",required=True)
+	password = forms.CharField(widget=forms.PasswordInput,required=True)
+	password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=True)
+	first_name = forms.CharField(required=False,initial="")
+	last_name = forms.CharField(required=False,initial="")
+	bio = forms.CharField( widget=forms.Textarea, required=False,initial="")
+	facebook_link = forms.CharField(required=False,initial="")
+
+	gender = forms.ChoiceField(choices=((None, ''), ('F', 'Female'), ('M', 'Male'), ('O', 'Other')))
+	agree_toc = forms.BooleanField(required=True, label='I agree with the Terms and Conditions')
+
+	layout = Layout(Fieldset("Provide your details here",'username', 'email',
+					Row('password', 'password_confirm'),
+					Fieldset('Pesonal details',
+							 Row('first_name', 'last_name'),
+							 'bio','facebook_link','gender', 'agree_toc')))
+
+
+def user_registration(request):
+	print("came into func")
+	if(request.method=="GET"):
+		form = RegistrationForm()
+		return render(request, "info/register.html",{"form":form})
+		error = ""
+	elif(request.method=="POST"):
+		form = RegistrationForm(request.POST)
+		if form.is_valid():
+			username = form.cleaned_data["username"]
+			if(User.objects.filter(username=username).exists()):
+				error= "Sorry. This username is already taken!"
+				return render(request,'info/register.html', locals())
+			email = form.cleaned_data["email"]
+			password = form.cleaned_data["password"]
+			password_confirm = form.cleaned_data["password_confirm"]
+			if(password!=password_confirm):
+				error= "Sorry. The passwords don't match!"
+				return render(request,'info/register.html', locals())
+
+			first_name = form.cleaned_data["first_name"]
+			last_name = form.cleaned_data["first_name"]
+			gender = form.cleaned_data["first_name"]
+			agree_toc = form.cleaned_data["agree_toc"]
+			bio = form.cleaned_data["bio"]
+			facebook_link = form.cleaned_data["facebook_link"]
+			user = User.objects.create(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
+			UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link)
+			return redirect("/accounts/login/")
+		else:
+			error = "The form is not valid. Some of the required fields not entered."
+			return render(request,'info/register.html', locals())
+

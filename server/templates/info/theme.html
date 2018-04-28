@@ -16,8 +16,6 @@
     <!-- Latest compiled JavaScript -->
     <!-- <script src={% static 'myapp/js/bootstrap.min.js' %}></script> -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <!-- Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script>
         {% if messages %}
             {% for message in messages %}
@@ -34,6 +32,7 @@
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand" href="/">Student Travel</a>
+                <p style="color:white"> Hello {{request.user.username}}</p>
                 <!-- Toggler/collapsibe Button -->
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
                     <span class="icon-bar"></span>
@@ -43,14 +42,20 @@
             </div>
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
-                    <li id="hashtags_tab" class="nav-item">
-                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    <li id="dashboard_tab" class="nav-item">
+                        <a class="nav-link" href="/dashboard/">Profile</a>
                     </li>
-                    <li id="mentions_tab" class="nav-item">
+                    <li id="journeys_tab" class="nav-item">
                         <a class="nav-link" href="#">Journey</a>
                     </li>
-                    <li id="urls_tab" class="nav-item">
+                    <li id="trips_tab" class="nav-item">
                         <a class="nav-link" href="#">Trip</a>
+                    </li>
+                    <li id="modify_tab" class="nav-item">
+                        <a class="nav-link" href="/accounts/update/">Update Info</a>
+                    </li>
+                    <li id="logout_tab" class="nav-item" style="position:absolute;right:20px;">
+                        <a class="nav-link" href="/accounts/logout/">Logout</a>
                     </li>
                 </ul>
             </div>

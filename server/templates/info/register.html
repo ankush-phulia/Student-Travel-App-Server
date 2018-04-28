@@ -1,0 +1,40 @@
+{% load static %}
+{% include 'material/includes/material_css.html' %}
+<script src="{% static 'material/js/jquery.js' %}"></script>
+{% include 'material/includes/material_js.html' %}
+{% load material_form %}
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Register to use the best Student Travel App</title>
+	<style type="text/css">
+	  html, body {
+		  background: #eee;
+		  height: 100%;
+	  }
+	</style>
+
+	<style type="text/css">
+	</style>
+</head>
+
+<body class="valign-wrapper2">
+<div class="container expand-on-small-only">
+	<div class="row valign change-form">
+		<div class="col s12 m8 offset-m2 l8 offset-l2">
+			<!-- The padding is necessary to ensure that the fields are not chipka to the left and right wall  -->
+			<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;padding-top:45px;">
+			{{error}}
+			<form method="POST">
+				{% csrf_token %}
+				{% form form=form %}{% endform %}
+				<button type="submit" name="_submit" class="btn">Submit</button>
+			</form>
+			</div>
+		</div>
+	</div>
+</div>
+</body>

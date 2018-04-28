@@ -42,6 +42,9 @@ INSTALLED_APPS = [
 	'info',
 	'crispy_forms',
 	'django_tables2',
+	'material',
+	'material.theme.amber',
+    'material.frontend',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +76,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'server.wsgi.application'
-
+LOGIN_REDIRECT_URL= "/dashboard/"
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases

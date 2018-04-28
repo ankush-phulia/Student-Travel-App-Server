@@ -15,6 +15,9 @@ urlpatterns = [
     url(r'^accounts/login/$', user_auth_views.login, {'template_name': 'info/login.html'}, name='login'),
     url(r'^accounts/logout/$', user_auth_views.logout, name='logout'),
     url(r'^$', views.home, name='home'),
-    url(r'^dashboard$', views.Dashboard, name='dashboard'),
+    url(r'^dashboard/$', views.Dashboard, name='dashboard'),
+    url(r'^accounts/update/$', views.edit_user, name='account_update'),
+    url(r'^accounts/register/$', views.user_registration, name='register'),
+
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
