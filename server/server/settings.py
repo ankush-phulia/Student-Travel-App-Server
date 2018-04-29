@@ -25,7 +25,7 @@ SECRET_KEY = 'ol_xd552=e6x((njw=b0ef(bbgqo+!$l*0ak(&*mw_h*t01n^6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [u'10.0.2.2', u'127.0.0.1']
 
 
 # Application definition
