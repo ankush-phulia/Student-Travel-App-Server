@@ -21,10 +21,16 @@ class NotificationSerializer(serializers.ModelSerializer):
 		user_from = User.objects.get(username=validated_data.pop('user_from')["username"])
 		return Notification.objects.create(user_to=user_to,user_from=user_from,**validated_data)
 
+class LocationPointSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = LocationPoint
+		fields = ("location_name","latitude","longitude","location_type","rating")
+
 class JourneyPointSerializer(serializers.ModelSerializer):
+	location = LocationPointSerializer()
 	class Meta:
 		model = JourneyPoint
-		fields = ("location_name","latitude","longitude",)
+		fields = ("location","transport","point_id",)
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -34,7 +40,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 		fields = ('user','sex','facebook_link')
 
 class JourneySerializer(serializers.ModelSerializer):
-	checkpoints = JourneyPointSerializer(many=True)
+	checkpoints = JourneyPointSerializer(read_only=True,many=True)
 	participants = UserSerializer(many=True)
 	class Meta:
 		model = Journey

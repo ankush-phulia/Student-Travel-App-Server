@@ -16,7 +16,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Update your information here</title>
+	<title>Journey related operations here</title>
 
 	<style type="text/css">
 	  html, body {
@@ -167,15 +167,42 @@
 		</div>
 
 		<div id="requestTab" class="tab-pane fade">
-			<h5>Here are the notifications sent by you</h5>
+			<h5>Here are the journey add requests made to you</h5>
+
+			<form method="POST" action="request_resolve_handler/">
+			{% csrf_token %}
+			<div class="table-responsive">
+				<table class="table table-hover table-striped table-bordered">
+					<thead>
+					  <tr style="background: #2C2B2A; color: white">
+						<th rowspan="2" style="text-align: center;">User</th>
+						<th rowspan="2" style="text-align: center;">Request Notification</th>
+						<th rowspan="2" style="text-align: center;">Actions</th>
+
+					  </tr>
+					</thead>
+					<tbody>
+						{% for l in req_lis %}
+						<tr>
+							<td style="text-align: center;">{{l.user_from}}</td>
+							<td style="text-align: center;">{{l.description}}</td>
+							<td style="text-align: center;">
+								<button type="submit" name="submit{{forloop.counter0}}" {%if l.disable%}disabled="disabled"{% endif %}" class="btn">Accept</button>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			</form>
 		</div>
 
 		<div id="upcomingTab" class="tab-pane fade">
-			<h5>Here are the notifications sent by you</h5>
+			<h5>Here are your journeys which have not been closed</h5>
 		</div>
 
 		<div id="closedTab" class="tab-pane fade">
-			<h5>Here are the notifications sent by you</h5>
+			<h5>Here are your closed journeys</h5>
 		</div>
 
 	</div>

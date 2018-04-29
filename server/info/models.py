@@ -80,7 +80,7 @@ class JourneyPoint(models.Model):
 	location = models.ForeignKey(LocationPoint)
 	transport = models.CharField(choices=TRANSPORT_TYPES, default="BUS", max_length=100)
 	point_id = models.CharField(max_length=50)
-	journey = models.ForeignKey(Journey)
+	journey = models.ForeignKey(Journey,related_name="checkpoints")
 	def __str__(self):
 		return self.location.location_name
 
