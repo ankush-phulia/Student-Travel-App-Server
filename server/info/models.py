@@ -3,13 +3,13 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 # from mezzanine.core.fields import FileField
 from django.db.models.signals import post_save
+from django.db.models.signals import post_save
 
 # Create your models here.
 NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
 SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
-
-from django.db.models.signals import post_save
-
+LOCATION_TYPES = [(x,x) for x in ["Journey Point","Trip Point"]]
+TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train"]]
 # class UserProfile(models.Model):
 # 	user = models.OneToOneField(User, related_name='user')
 # 	# photo = FileField(verbose_name=_("Profile Picture"),
@@ -45,26 +45,42 @@ class Notification(models.Model):
 	description = models.TextField()
 	notif_type = models.CharField(choices=NOTIFICATION_TYPES, default="Logistics Related", max_length=100)
 	creation_time = models.DateTimeField()
+	resolved = models.CharField(default="No",max_length=50)
 	class Meta:
 		ordering = ("creation_time",)
 	def __str__(self):
 		return self.user_from.username+"->"+self.user_to.username+">>"+str(self.creation_time)
 
-class JourneyPoint(models.Model):
+class LocationPoint(models.Model):
+	user = models.ForeignKey(User)
 	location_name = models.CharField(max_length=100)
 	latitude = models.CharField(max_length=50)
 	longitude = models.CharField(max_length=50)
+	location_type = models.CharField(choices=LOCATION_TYPES,default="Journey Point",max_length=50)
+	rating = models.CharField(max_length=10,default="2.5")
 	def __str__(self):
 		return self.location_name
+
+
 
 class Journey(models.Model):
 	journey_id = models.CharField(max_length=50)
 	start_time = models.DateTimeField()
 	source  = models.CharField(max_length=100)
 	destination = models.CharField(max_length=100)
-	checkpoints = models.ManyToManyField(JourneyPoint)
+	cotravel_number = models.CharField(max_length=10,default="1")
 	participants = models.ManyToManyField(User)
+	posted = models.BooleanField(default=False)
+	completed = models.BooleanField(default=False)
+
 	def __str__(self):
 		return self.journey_id
 
+class JourneyPoint(models.Model):
+	location = models.ForeignKey(LocationPoint)
+	transport = models.CharField(choices=TRANSPORT_TYPES, default="BUS", max_length=100)
+	point_id = models.CharField(max_length=50)
+	journey = models.ForeignKey(Journey)
+	def __str__(self):
+		return self.location.location_name
 

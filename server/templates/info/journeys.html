@@ -1,0 +1,197 @@
+{% load static %}
+<div>
+{% include "info/theme.html" %}
+</div>
+
+{% load crispy_forms_tags %}
+
+
+{% include 'material/includes/material_css.html' %}
+<script src="{% static 'material/js/jquery.js' %}"></script>
+{% include 'material/includes/material_js.html' %}
+{% load material_form %}
+
+{% block head%}
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Update your information here</title>
+
+	<style type="text/css">
+	  html, body {
+		  background: #eee;
+		  height: 100%;
+	  }
+	</style>
+
+	<style type="text/css">
+	</style>
+</head>
+{% endblock %}
+
+
+
+
+{% block body %}
+
+<div class="container-fluid">
+	<ul class="nav nav-tabs">
+	  <li class="active"><a data-toggle="tab" href="#createTab">Create</a></li>
+	  <li><a data-toggle="tab" href="#modifyTab">Modify</a></li>
+	  <li><a data-toggle="tab" href="#requestTab">Add Requests</a></li>
+	  <li><a data-toggle="tab" href="#upcomingTab">Upcoming Journeys</a></li>
+	  <li><a data-toggle="tab" href="#closedTab">Closed Journeys</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="createTab" class="tab-pane fade in active">
+			<h5>Create a new Jouney</h5>
+
+			<div class="valign-wrapper2">
+			<div class="container expand-on-small-only">
+				<div class="row valign change-form">
+					<div class="col s12 m8 offset-m2 l8 offset-l2">
+						<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
+						{{error}}
+						<form method="POST" action="journey_create_handler1/">
+							{% csrf_token %}
+							{% form form=jform1 %}{% endform %}
+							<button type="submit" name="add_checkpoint" class="btn">Add Checkpoints</button>
+						</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			</div>
+			{% if display1 %}
+			<div class="table-responsive">
+				<table class="table table-hover table-striped table-bordered">
+					<thead>
+					  <tr style="background: #2C2B2A; color: white">
+						<th rowspan="2" style="text-align: center;">Checkpoint A</th>
+						<th rowspan="2" style="text-align: center;">Travel Means</th>
+						<th rowspan="2" style="text-align: center;">Checkpoint B</th>
+
+					  </tr>
+					</thead>
+					<tbody>
+						{% for cp in checkpoints %}
+						<tr>
+							<td style="text-align: center;">{{cp.checkpointA}}</td>
+							<td style="text-align: center;">{{cp.means}}</td>
+							<td style="text-align: center;">{{cp.checkpointB}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% endif %}
+			<div class="valign-wrapper2">
+			<div class="container expand-on-small-only">
+				<div class="row valign change-form">
+					<div class="col s12 m8 offset-m2 l8 offset-l2">
+						<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
+						{{error}}
+						<form method="POST" action="journey_create_handler2/">
+							{% csrf_token %}
+							{% form form=jform2 %}{% endform %}
+							<button type="submit" name="create" class="btn">Create</button>
+						</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+
+		<div id="modifyTab" class="tab-pane fade">
+			<h5>Please select an operation to apply on the journeys you have not posted yet!!</h5>
+
+			<div class="valign-wrapper2">
+			<div class="container expand-on-small-only">
+				<div class="row valign change-form">
+					<div class="col s12 m8 offset-m2 l8 offset-l2">
+						<!-- The padding is necessary to ensure that the fields are not chipka to the left and right wall  -->
+						<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
+						{{error}}
+						<form method="POST" action="journey_modify_handler/">
+							{% csrf_token %}
+							{% form form=jmform %}{% endform %}
+							<button type="submit" name="search" class="btn">Search</button>
+							<button type="submit" name="post" class="btn">Post</button>
+							<button type="submit" name="delete" class="btn">Delete</button>
+						</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			</div>
+			{% if display2 %}
+			<form method="POST" action="request_add_handler/">
+			{% csrf_token %}
+			<div class="table-responsive">
+				<table class="table table-hover table-striped table-bordered">
+					<thead>
+					  <tr style="background: #2C2B2A; color: white">
+						<th rowspan="2" style="text-align: center;">Journey name</th>
+						<th rowspan="2" style="text-align: center;">Date</th>
+						<th rowspan="2" style="text-align: center;">Participants</th>
+						<th rowspan="2" style="text-align: center;">Actions</th>
+
+					  </tr>
+					</thead>
+					<tbody>
+						{% for l in lis %}
+						<tr>
+							<td style="text-align: center;">{{l.journey_name}}</td>
+							<td style="text-align: center;">{{l.journey_date}}</td>
+							<td style="text-align: center;">
+							<ul type="square">
+								{% for p in l.journey_participants%}
+									<li>{{p}}</li>
+								{% endfor %}
+							</ul>
+							</td>
+							<td style="text-align: center;">
+								<button type="submit" name="submit{{forloop.counter0}}" {%if l.disable%}disabled="disabled"{% endif %}" class="btn">Request Add</button>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			</form>
+			{% endif %}
+		</div>
+
+		<div id="requestTab" class="tab-pane fade">
+			<h5>Here are the notifications sent by you</h5>
+		</div>
+
+		<div id="upcomingTab" class="tab-pane fade">
+			<h5>Here are the notifications sent by you</h5>
+		</div>
+
+		<div id="closedTab" class="tab-pane fade">
+			<h5>Here are the notifications sent by you</h5>
+		</div>
+
+	</div>
+
+</div>
+
+<script type="text/javascript">
+	$(function(){
+		$("#dashboard_tab").removeClass("active");
+		$("#locations_tab").removeClass("active");
+		$("#journeys_tab").addClass("active");
+		$("#trips_tab").removeClass("active");
+		$("#notifications_tab").removeClass("active");
+		$("#modify_tab").removeClass("active");
+		$("#logout_tab").removeClass("active");
+	});
+</script>
+
+{% endblock %}

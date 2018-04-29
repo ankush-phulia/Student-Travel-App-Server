@@ -1,0 +1,107 @@
+{% load static %}
+<div>
+{% include "info/theme.html" %}
+</div>
+
+{% load crispy_forms_tags %}
+
+
+{% include 'material/includes/material_css.html' %}
+<script src="{% static 'material/js/jquery.js' %}"></script>
+{% include 'material/includes/material_js.html' %}
+{% load material_form %}
+
+{% block head%}
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Update your information here</title>
+
+	<style type="text/css">
+	  html, body {
+		  background: #eee;
+		  height: 100%;
+	  }
+	</style>
+
+	<style type="text/css">
+	</style>
+</head>
+{% endblock %}
+
+
+
+
+{% block body %}
+
+<div class="container-fluid">
+	<ul class="nav nav-tabs">
+	  <li class="active"><a data-toggle="tab" href="#createTab">Create Location</a></li>
+	  <li><a data-toggle="tab" href="#manageTab">My Locations</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="createTab" class="tab-pane fade in active">
+			<h5>Add a new location</h5>
+			<div class="valign-wrapper2">
+			<div class="container expand-on-small-only">
+				<div class="row valign change-form">
+					<div class="col s12 m8 offset-m2 l8 offset-l2">
+						<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
+						{{error}}
+						<form method="POST" action="location_create_handler/">
+							{% csrf_token %}
+							{% form form=loc_form %}{% endform %}
+							<button type="submit" name="_submit" class="btn">Create Location</button>
+						</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+
+		<div id="manageTab" class="tab-pane fade">
+			<h5>Here are your locations</h5>
+			<div class="table-responsive">
+				<table class="table table-hover table-striped table-bordered">
+					<thead>
+					  <tr style="background: #2C2B2A; color: white">
+						<th rowspan="2" style="text-align: center;">Location</th>
+						<th rowspan="2" style="text-align: center;">Type</th>
+						<th rowspan="2" style="text-align: center;">Rating</th>
+
+					  </tr>
+					</thead>
+					<tbody>
+						{% for loc in locs %}
+						<tr>
+							<td style="text-align: center;">{{loc.location_name}}</td>
+							<td style="text-align: center;">{{loc.location_type}}</td>
+							<td style="text-align: center;">{{loc.rating}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+
+<script type="text/javascript">
+	$(function(){
+		$("#dashboard_tab").removeClass("active");
+        $("#locations_tab").addClass("active");
+		$("#journeys_tab").removeClass("active");
+		$("#trips_tab").removeClass("active");
+		$("#notifications_tab").removeClass("active");
+		$("#modify_tab").removeClass("active");
+		$("#logout_tab").removeClass("active");
+	});
+</script>
+
+{% endblock %}

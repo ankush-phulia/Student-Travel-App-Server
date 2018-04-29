@@ -1,0 +1,155 @@
+{% load static %}
+<div>
+{% include "info/theme.html" %}
+</div>
+
+{% load crispy_forms_tags %}
+
+
+{% include 'material/includes/material_css.html' %}
+<script src="{% static 'material/js/jquery.js' %}"></script>
+{% include 'material/includes/material_js.html' %}
+{% load material_form %}
+
+{% block head%}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Update your information here</title>
+
+    <style type="text/css">
+      html, body {
+          background: #eee;
+          height: 100%;
+      }
+    </style>
+
+    <style type="text/css">
+    </style>
+</head>
+{% endblock %}
+
+
+
+
+{% block body %}
+
+<div class="container-fluid">
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#createTab">Create Notification</a></li>
+      <li><a data-toggle="tab" href="#manageTab">My Notifications</a></li>
+      <li><a data-toggle="tab" href="#manage_sentTab">Sent Notifications</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div id="createTab" class="tab-pane fade in active">
+            <h5>Create a new notification</h5>
+            <!-- <form id="createAlertForm" method="post" action="notification_create_handler/">{% csrf_token %}
+                {{ form | crispy }}
+                <br>
+                <button type="submit" class="btn btn-primary">Send Notification!</button>
+            </form> -->
+            <div class="valign-wrapper2">
+            <div class="container expand-on-small-only">
+                <div class="row valign change-form">
+                    <div class="col s12 m8 offset-m2 l8 offset-l2">
+                        <!-- The padding is necessary to ensure that the fields are not chipka to the left and right wall  -->
+                        <div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
+                        {{error}}
+                        <form method="POST" action="notification_create_handler/">
+                            {% csrf_token %}
+                            {% form form=form %}{% endform %}
+                            <button type="submit" name="_submit" class="btn">Send Notification</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div id="manageTab" class="tab-pane fade">
+            <h5>Here are the notifications for you</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered">
+                    <thead>
+                      <tr style="background: #2C2B2A; color: white">
+                        <th rowspan="2" style="text-align: center;">From User</th>
+                        <th rowspan="2" style="text-align: center;">Time</th>
+                        <th rowspan="2" style="text-align: center;">Type</th>
+                        <th rowspan="2" colspan="2" style="text-align: center;">Title</th>
+                        <th rowspan="2" colspan="4" style="text-align: center;">Description</th>
+
+
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for notif in notifs %}
+                        <tr>
+                            <td style="text-align: center;">{{notif.user_from}}</td>
+                            <td style="text-align: center;">{{notif.creation_time}}</td>
+                            <td style="text-align: center;">{{notif.type}}</td>
+                            <td colspan="2" style="text-align: center;">{{notif.title}}</td>
+                            <td colspan="4" style="text-align: center;">{{notif.description}}</td>
+                            <!-- <td style="text-align: center;"><a href="alerts_tweets?alert_id={{alert.id}}" target="_blank">{{alert.tweet_count}}</a></td>
+                            <td style="text-align: center;"><a class="btn btn-danger" href="alerts_delete?alert_id={{alert.id}}">Delete</a></td>
+                        -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="manage_sentTab" class="tab-pane fade">
+            <h5>Here are the notifications sent by you</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered">
+                    <thead>
+                      <tr style="background: #2C2B2A; color: white">
+                        <th rowspan="2" style="text-align: center;">To User</th>
+                        <th rowspan="2" style="text-align: center;">Time</th>
+                        <th rowspan="2" style="text-align: center;">Type</th>
+                        <th rowspan="2" colspan="2" style="text-align: center;">Title</th>
+                        <th rowspan="2" colspan="4" style="text-align: center;">Description</th>
+
+
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for notif in notifs_sent %}
+                        <tr>
+                            <td style="text-align: center;">{{notif.user_to}}</td>
+                            <td style="text-align: center;">{{notif.creation_time}}</td>
+                            <td style="text-align: center;">{{notif.type}}</td>
+                            <td colspan="2" style="text-align: center;">{{notif.title}}</td>
+                            <td colspan="4" style="text-align: center;">{{notif.description}}</td>
+                            <!-- <td style="text-align: center;"><a href="alerts_tweets?alert_id={{alert.id}}" target="_blank">{{alert.tweet_count}}</a></td>
+                            <td style="text-align: center;"><a class="btn btn-danger" href="alerts_delete?alert_id={{alert.id}}">Delete</a></td>
+                        -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    $(function(){
+        $("#dashboard_tab").removeClass("active");
+        $("#locations_tab").removeClass("active");
+        $("#journeys_tab").removeClass("active");
+        $("#trips_tab").removeClass("active");
+        $("#notifications_tab").addClass("active");
+        $("#modify_tab").removeClass("active");
+        $("#logout_tab").removeClass("active");
+    });
+</script>
+
+{% endblock %}
