@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^user_journeys/journey_create_handler2/$', views.journey_creation_handler2, name='journey_create_handler2'),
     url(r'^user_journeys/journey_modify_handler/$', views.journey_modify_handler, name='journey_modify_handler'),
     url(r'^user_journeys/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
+    url(r'^user_journeys/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
 
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

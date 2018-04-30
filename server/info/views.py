@@ -46,8 +46,8 @@ from dateutil import parser
 # Link for the dashboard html
 # https://bootsnipp.com/snippets/featured/people-card-with-tabs
 
-def match_journeys(jrny):
-	return [[x,False] for x in Journey.objects.all()]
+def match_journeys(user,jrny):
+	return [[x,False] for x in Journey.objects.all() if user not in x.participants.all()]
 
 class UserInformation(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
@@ -349,6 +349,7 @@ class JourneyModifyForm(forms.Form):
 display2 = False
 checkpoints = []
 matching_jlist = []
+
 @login_required
 def user_journeys(request):
 	# global display1
@@ -366,10 +367,11 @@ def user_journeys(request):
 		d["journey_participants"] = [x.username for x in o.participants.all()]
 		d["disable"] = dis
 		lis.append(d)
+	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	display1 = len(checkpoints)!=0
 	display2 = len(lis)!=0
 
-	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,"checkpoints":checkpoints})
+	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,"checkpoints":checkpoints,"req_lis":req_lis})
 
 def journey_creation_handler1(request):
 	global checkpoints
@@ -414,7 +416,7 @@ def journey_modify_handler(request):
 	pprint(request.POST)
 	jrny = Journey.objects.get(participants__in=[request.user],journey_id=request.POST.get("journey_name"))
 	if("search" in request.POST):
-		matching_jlist = match_journeys(jrny)
+		matching_jlist = match_journeys(request.user,jrny)
 	elif("post" in request.POST):
 		jrny.posted=True
 		jrny.save()
@@ -443,3 +445,6 @@ def request_add_handler(request):
 			notif_type="Journey Related",creation_time=datetime.datetime.now())
 	matching_jlist[index][1] = True
 	return redirect("/user_journeys/")
+
+def request_resolve_handler(request):
+	pass
