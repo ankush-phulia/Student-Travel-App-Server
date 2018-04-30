@@ -6,6 +6,8 @@ from django.contrib.auth import views as user_auth_views
 
 urlpatterns = [
     url(r'^user_info/$', views.UserInformation.as_view()),
+    url(r'^update_user_info/$', views.UserInformationUpdate.as_view()),
+
     url(r'^notifications/$', views.NotificationList.as_view()),
     url(r'^journeys/$', views.JourneyList.as_view()),
     url(r'^single_journey/(?P<journey_id>[ 0-9a-zA-Z_@.-]+)/$', views.JourneySingle.as_view()),

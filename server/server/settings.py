@@ -47,10 +47,12 @@ INSTALLED_APPS = [
     'material.frontend',
     "geoposition",
     'easy_maps',
+    "mapwidgets",
 ]
 
 GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
 EASY_MAPS_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
+GOOGLE_MAP_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',

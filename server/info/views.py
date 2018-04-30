@@ -65,6 +65,38 @@ class UserInformation(APIView):
 		serializer = UserInfoSerializer(user_object, many=True)
 		return Response(serializer.data)
 
+class UserInformationUpdate(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		try:
+			user = request.user
+			ui = UserInfo.objects.get(user=user)
+
+			first_name = validated_data.get("first_name",user.first_name)
+			last_name = validated_data.get("last_name",user.last_name)
+			email = validated_data.get("email",user.email)
+			
+			sex = validated_data.get("gender",ui.sex)
+			facebook_link = validated_data.get("facebook_link",ui.facebook_link)
+			bio = validated_data.get("bio",ui.bio)
+			phone = validated_data.get("phone",ui.phone)
+
+			user.first_name  = first_name
+			user.last_name  = last_name
+			user.email  = email
+
+			ui.sex = sex
+			ui.facebook_link = facebook_link
+			ui.bio = bio
+			ui.phone = phone
+			user.save()
+			ui.save()
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
 class NotificationList(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
