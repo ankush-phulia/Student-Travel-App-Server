@@ -16,13 +16,20 @@ urlpatterns = [
     url(r'^close_journey/$', views.JourneyClose.as_view()),
 
     url(r'^make_request/$', views.MakeRequest.as_view()),
+    # make reques to join a journey
+    # request parametes
+    # users : the list of users included in the journey
+    # title = some string like "Add me to journey"
+    # description = string like "deepak wants to join the journey 'Ankush goes home'  of which you are a member"
+    # notif_type = string "Jounrney Related" ot "Trip Related"
     url(r'^accept_request/$', views.AcceptRequest.as_view()),
     url(r'^reject_request/$', views.RejectRequest.as_view()),
+    # Accept or reject requests
+    # request params
+    # id  : id of the notification to which user is accepting/rejecting
 
-    # user_info_update/
-    # make_request
-    # accept_request
-    # reject_request
+    url(r'^journey_points/$', views.JourneyPointsList.as_view()),
+
 
     url(r'^notifications/(?P<username>[0-9a-zA-Z_@.-]+)/$', views.UserNotifications.as_view()),
     url(r'^api-auth/', include('rest_framework.urls')),

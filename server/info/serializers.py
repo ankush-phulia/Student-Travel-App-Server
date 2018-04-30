@@ -31,7 +31,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 class LocationPointSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = LocationPoint
-		fields = ("location_name","latitude","longitude","location_type","rating")
+		fields = ("id","location_name","latitude","longitude","location_type","rating")
 
 class JourneyPointSerializer(serializers.ModelSerializer):
 	location = LocationPointSerializer()

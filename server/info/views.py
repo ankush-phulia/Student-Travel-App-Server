@@ -97,6 +97,14 @@ class UserInformationUpdate(APIView):
 		except:
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
+class JourneyPointsList(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def get(self,request,format=None):
+		locs = LocationPoint.objects.filter(user=request.user,location_type="Journey Point")
+		serializer = LocationPointSerializer(locs, many=True)
+		return Response(serializer.data)
+
 class NotificationList(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
