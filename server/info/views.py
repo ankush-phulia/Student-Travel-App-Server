@@ -43,6 +43,10 @@ from dateutil import parser
 # But enabling BasicAuthentication along with token authentication has issues in logout from the REST api web interface. So diable it and use only token
 # authentication
 
+
+# echo '{"checkpoints":[{"location":{"location_name":"IITDelhi","latitude":"","longitude":"","location_type":"JourneyPoint","rating":"2.5"},"transport":"Bus","point_id":"0"}],"participants":[{"id":2,"username":"ankush@gmail.com","first_name":"","last_name":"","email":""}],"start_time":"2018-05-03T20:00:48Z","source":"IITDelhi","destination":"SaraiRohillla","journey_id":"Winter_Vacations"},{"checkpoints":[],"participants":[],"start_time":"2018-05-03T20:00:48Z","source":"IITDelhi","destination":"IITDelhi","journey_id":"Winter_Vacations"}' | http --json POST http://127.0.0.1:8000/single_journey/2/
+
+
 # Link for the dashboard html
 # https://bootsnipp.com/snippets/featured/people-card-with-tabs
 
@@ -89,14 +93,54 @@ class JourneyList(APIView):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @csrf_exempt
-# @api_view(["GET","DELETE"])
+class JourneySingle(APIView):
+	def get_journey(self,journey_id,user):
+		try:
+			return Journey.objects.filter(journey_id=journey_id)
+		except Journey.DoesNotExist:
+			raise Http404
+	def get(self,request,journey_id,format=None):
+		print("journey_id",journey_id)
+		jrny = self.get_journey(journey_id,request.user)
+		serializer = JourneySerializer(jrny,many=True)
+		return Response(serializer.data)
+
+	def post(self,request,journey_id,format=None):
+		print("came here")
+		pprint(request.data)
+		# validated_data = JSONParser().parse(request)
+		validated_data = request.POST
+		pprint(validated_data)
+		# serializer = JourneySerializer(data=data)
+		# if serializer.is_valid():
+		# 	serializer.save()
+		# 	return Response(serializer.data, status=status.HTTP_201_CREATED)
+		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			user = request.user
+			# journey_name = validated_data.pop('journey_id')
+			journey_date = validated_data.get("start_time")
+			# cotravel_number = validated_data.pop("cotravel_number")
+			checkpoints = validated_data.get("checkpoints")
+			print(checkpoints)
+			jrny = Journey(journey_id=journey_id,start_time=parser.parse(journey_date),
+				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"])
+				# cotravel_number=cotravel_number)
+			print("came here")
+			jrny.save()
+			jrny.participants.add(user)
+			for i,x in enumerate(checkpoints):
+				loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+				JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 class UserNotifications(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	def get_user_notifications(self,username):
 		try:
 			return Notification.objects.filter(user_to__username = username)
-		except Snippet.DoesNotExist:
+		except Notification.DoesNotExist:
 			raise Http404
 	def get(self,request,username,format=None):
 		notifs = self.get_user_notifications(username)

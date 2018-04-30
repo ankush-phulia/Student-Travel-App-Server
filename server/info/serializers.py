@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from info.models import *
 from django.contrib.auth.models import User
+from dateutil import parser
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -45,3 +46,25 @@ class JourneySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Journey
 		fields = ("checkpoints","participants","start_time","source","destination","journey_id")
+
+	def create(self, validated_data):
+		print("came here /// 999999999999")
+		# participants = validated_data.pop('profile')
+		# user = User.objects.create(**validated_data)
+		# Profile.objects.create(user=user, **profile_data)
+		# return user
+		user = self.context['request'].user
+		journey_name = validated_data.pop('journey_id')
+		journey_date = validated_data.pop("start_time")
+		# cotravel_number = validated_data.pop("cotravel_number")
+		checkpoints = validated_data.pop("checkpoints")
+		jrny = Journey(journey_id=journey_name,start_time=parser.parse(journey_date),
+			source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"])
+			# cotravel_number=cotravel_number)
+		jrny.save()
+		jrny.participants.add(user)
+
+		for i,x in enumerate(checkpoints):
+			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+			JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
+		return jrny

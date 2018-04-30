@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^user_info/$', views.UserInformation.as_view()),
     url(r'^notifications/$', views.NotificationList.as_view()),
     url(r'^journeys/$', views.JourneyList.as_view()),
+    url(r'^single_journey/(?P<journey_id>[ 0-9a-zA-Z_@.-]+)/$', views.JourneySingle.as_view()),
     url(r'^notifications/(?P<username>[0-9a-zA-Z_@.-]+)/$', views.UserNotifications.as_view()),
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^api-token-auth/', auth_views.obtain_auth_token),
