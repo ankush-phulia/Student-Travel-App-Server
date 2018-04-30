@@ -5,7 +5,12 @@
 
 {% load crispy_forms_tags %}
 
+<!-- {% load bootstrap3 %}
 
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+ -->
 {% include 'material/includes/material_css.html' %}
 <script src="{% static 'material/js/jquery.js' %}"></script>
 {% include 'material/includes/material_js.html' %}
@@ -26,6 +31,13 @@
 	</style>
 
 	<style type="text/css">
+		.jumbotron {
+	  padding-top: 30px;
+	  padding-bottom: 30px;
+	  margin-bottom: 30px;
+	  color: inherit;
+	  background-color: #777;
+	}
 	</style>
 </head>
 {% endblock %}
@@ -199,6 +211,13 @@
 
 		<div id="upcomingTab" class="tab-pane fade">
 			<h5>Here are your journeys which have not been closed</h5>
+				<div class="jumbotron" >
+				  <p style="font-size: 30px"><a href="#">Hello</a></p>
+				  <p style="font-size: 20px">
+				  
+				  </p>
+				</div>
+				
 		</div>
 
 		<div id="closedTab" class="tab-pane fade">

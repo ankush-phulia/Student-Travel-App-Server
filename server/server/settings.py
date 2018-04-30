@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "geoposition",
     'easy_maps',
     "mapwidgets",
+    'bootstrap3',
+    'django_extensions',
 ]
 
 GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
