@@ -49,6 +49,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
 class JourneySerializer(serializers.ModelSerializer):
 	checkpoints = JourneyPointSerializer(read_only=True,many=True)
 	participants = UserSerializer(many=True)
+	start_time = serializers.SerializerMethodField()
+
+	def get_start_time(self, obj):
+		return obj.start_time.replace(second=0, microsecond=0)
 	class Meta:
 		model = Journey
 		fields = ("checkpoints","participants","start_time","source","destination","journey_id")
