@@ -49,7 +49,7 @@ urlpatterns = [
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
 
-
+# API key AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU
 # TODO:
 # remove rating from journey point list
 # make api to edit user info

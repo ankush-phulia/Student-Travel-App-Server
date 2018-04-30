@@ -45,7 +45,12 @@ INSTALLED_APPS = [
 	'material',
 	'material.theme.amber',
     'material.frontend',
+    "geoposition",
+    'easy_maps',
 ]
+
+GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
+EASY_MAPS_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',

@@ -29,6 +29,9 @@ import django_tables2 as tables
 from pprint import *
 import datetime,json
 from dateutil import parser
+from geoposition.fields import GeopositionField
+
+# from mapwidgets.widgets import GooglePointFieldWidget, GoogleStaticOverlayMapWidget
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
 # See this for an overview tutorial
@@ -441,14 +444,19 @@ def notification_create_handler(request):
 
 class LocationForm(forms.Form):
 	location_name = forms.CharField(required=True)
+	# location_name = forms.PointField(widget=GooglePointFieldWidget)
 	location_type = forms.ChoiceField(choices=((None, ''),('Trip Point', 'Trip Point'), ('Journey Point', 'Journey Point')))
 	layout = Layout(Fieldset("Provide the location information here",'location_name', 'location_type'))
+
+class LocationForm2(forms.Form):
+	location_name = GeopositionField()
 
 @login_required
 def user_locations(request):
 	locs = LocationPoint.objects.filter(user=request.user)
 	form = LocationForm()
-	return render(request,'info/locations.html', {"loc_form":form,"locs":locs})
+	form2 = LocationForm2()
+	return render(request,'info/locations.html', {"loc_form":form,"locs":locs,"loc_form2":form2})
 
 @login_required
 def location_create_handler(request):
