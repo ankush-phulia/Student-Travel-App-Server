@@ -34,7 +34,7 @@ TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train"]]
 
 # 	def get_prep_value(self, value):
 # 		return datetime.datetime.strptime(value.strftime("yyyy-MM-dd HH:mm"),"yyyy-MM-dd HH:mm")
-	
+
 class UserInfo(models.Model):
 	user = models.ForeignKey(User,on_delete=models.CASCADE)
 	sex = models.CharField(choices=SEX_TYPES,max_length=50)
@@ -77,7 +77,7 @@ class Journey(models.Model):
 	cotravel_number = models.CharField(max_length=10,default="1")
 	participants = models.ManyToManyField(User)
 	posted = models.BooleanField(default=False)
-	completed = models.BooleanField(default=False)
+	closed = models.BooleanField(default=False)
 
 	def __str__(self):
 		return self.journey_id

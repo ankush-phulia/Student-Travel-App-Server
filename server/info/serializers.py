@@ -20,7 +20,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Notification
-		fields = ("user_from","user_to","title","description","notif_type","creation_time",)
+		fields = ("id","user_from","user_to","title","description","notif_type","creation_time","resolved")
 
 	def create(self,validated_data):
 		# print(">>>>>>>>>>",validated_data.pop('user_to'))
@@ -44,7 +44,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
 	class Meta:
 		model = UserInfo
-		fields = ('user','sex','facebook_link')
+		fields = ('user','sex','facebook_link',"phone","bio")
 
 class JourneySerializer(serializers.ModelSerializer):
 	checkpoints = JourneyPointSerializer(read_only=True,many=True)
@@ -55,7 +55,8 @@ class JourneySerializer(serializers.ModelSerializer):
 		return obj.start_time.replace(second=0, microsecond=0)
 	class Meta:
 		model = Journey
-		fields = ("checkpoints","participants","start_time","source","destination","journey_id")
+		fields = ("checkpoints","participants","start_time","source","destination","journey_id",
+			"cotravel_number","posted","closed")
 
 	def create(self, validated_data):
 		print("came here /// 999999999999")

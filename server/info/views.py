@@ -53,6 +53,7 @@ from dateutil import parser
 def match_journeys(user,jrny):
 	return [[x,False] for x in Journey.objects.all() if user not in x.participants.all()]
 
+
 class UserInformation(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 
@@ -107,43 +108,34 @@ class JourneySingle(APIView):
 
 	def post(self,request,journey_id,format=None):
 		print("came here")
-		# pprint(request.data)
-		# validated_data = JSONParser().parse(request)
 		validated_data = request.data
 		pprint(validated_data)
 		print(request.user)
-		# serializer = JourneySerializer(data=data)
-		# if serializer.is_valid():
-		# 	serializer.save()
-		# 	return Response(serializer.data, status=status.HTTP_201_CREATED)
-		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-		# try:
-		print("came into try")
-		user = request.user
-		# journey_name = validated_data.pop('journey_id')
 		try:
-			journey_date = parser.parse(validated_data.get("start_time"))
+			user = request.user
+			try:
+				journey_date = parser.parse(validated_data.get("start_time"))
+			except:
+				journey_date = datetime.datetime.now()
+			print(journey_date)
+			cotravel_number = validated_data.get("cotravel_number",2)
+			checkpoints = json.loads(validated_data.get("checkpoints"))
+			source = validated_data.get("source","")
+			destination = validated_data.get("source","")
+			print(checkpoints)
+			jrny = Journey(journey_id=journey_id,start_time=journey_date,
+				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
+				cotravel_number=cotravel_number)
+
+			jrny.save()
+			jrny.participants.add(user)
+			for i,x in enumerate(checkpoints):
+				loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+				JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
+			return Response(validated_data, status=status.HTTP_201_CREATED)
 		except:
-			journey_date = datetime.datetime.now()
-		print(journey_date)
-		# cotravel_number = validated_data.pop("cotravel_number")
-		checkpoints = json.loads(validated_data.get("checkpoints"))
-		print(checkpoints)
-		jrny = Journey(journey_id=journey_id,start_time=journey_date,
-			source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"])
-			# cotravel_number=cotravel_number)
-		
-		jrny.save()
-		print("came here")
-		jrny.participants.add(user)
-		print("came here")
-		for i,x in enumerate(checkpoints):
-			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
-			print("came here")
-			JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
-		return Response(validated_data, status=status.HTTP_201_CREATED)
-		# except:
-		return Response({}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
 class UserNotifications(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	def get_user_notifications(self,username):
@@ -166,6 +158,102 @@ class LoginForm(forms.Form):
 	password = forms.CharField(widget=forms.PasswordInput)
 	keep_logged = forms.BooleanField(required=False, label="Keep me logged in")
 
+
+class MakeRequest(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		try:
+			user = request.user
+			req_users = validated_data.get("users",[])
+			title = validated_data.get("title","")
+			description = validated_data.get("description","")
+			notif_type = validated_data.get("notif_type","Logistics Related")
+			for ut in req_users:
+				Notification.objects.create(user_to=ut,user_from=user,title=title,description=description,
+					notif_type=notif_type,creation_time=datetime.datetime.now())
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+class AcceptRequest(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		try:
+			id = validated_data.get("id")
+			username = request.user.username
+			notif = Notification.objects.get(id=id)
+			notif.resolved = username+" accepted the request"
+			notif.save()
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+class RejectRequest(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		try:
+			id = validated_data.get("id")
+			username = request.user.username
+			notif = Notification.objects.get(id=id)
+			notif.resolved = username+" rejected the request"
+			notif.save()
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class JourneySearch(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		pprint(validated_data)
+		try:
+			journey_id = validated_data.get("journey_id")
+			jrny = Journey.objects.get(journey_id=journey_id)
+			matches = match_journeys(user,jrny)
+			serializer = JourneySerializer(matches,many=True)
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+class JourneyPost(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		pprint(validated_data)
+		try:
+			journey_id = validated_data.get("journey_id")
+			jrny = Journey.objects.get(journey_id=journey_id)
+			jrny.posted=True
+			jrny.save()
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+class JourneyClose(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
+
+	def post(self,request,format=None):
+		validated_data = request.data
+		pprint(validated_data)
+		try:
+			journey_id = validated_data.get("journey_id")
+			jrny = Journey.objects.get(journey_id=journey_id)
+			jrny.closed=True
+			jrny.save()
+			return Response(validated_data, status=status.HTTP_201_CREATED)
+		except:
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+###########################################################################################
 @login_required
 def home(request):
 	return redirect("dashboard")
