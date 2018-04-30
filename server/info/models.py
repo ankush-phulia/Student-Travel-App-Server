@@ -4,7 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 # from mezzanine.core.fields import FileField
 from django.db.models.signals import post_save
 from django.db.models.signals import post_save
-
+from dateutil import parser
+import datetime
 # Create your models here.
 NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
 SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
@@ -29,6 +30,11 @@ TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train"]]
 	# 		user_profile.save()
 	# post_save.connect(create_profile, sender=User)
 
+# class MyDateTimeField(models.DateTimeField):
+
+# 	def get_prep_value(self, value):
+# 		return datetime.datetime.strptime(value.strftime("yyyy-MM-dd HH:mm"),"yyyy-MM-dd HH:mm")
+	
 class UserInfo(models.Model):
 	user = models.ForeignKey(User,on_delete=models.CASCADE)
 	sex = models.CharField(choices=SEX_TYPES,max_length=50)

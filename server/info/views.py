@@ -27,7 +27,7 @@ from material import *
 from django_tables2 import RequestConfig
 import django_tables2 as tables
 from pprint import *
-import datetime
+import datetime,json
 from dateutil import parser
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
@@ -79,7 +79,6 @@ class NotificationList(APIView):
 
 class JourneyList(APIView):
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
-	permission_classes = (permissions.IsAuthenticated,)
 	def get(self,request,format=None):
 		journeys = Journey.objects.filter(participants__in=[request.user])
 		serializer = JourneySerializer(journeys, many=True)
@@ -94,6 +93,7 @@ class JourneyList(APIView):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneySingle(APIView):
+	permission_classes = (permissions.IsAuthenticated,)
 	def get_journey(self,journey_id,user):
 		try:
 			return Journey.objects.filter(journey_id=journey_id)
@@ -107,34 +107,43 @@ class JourneySingle(APIView):
 
 	def post(self,request,journey_id,format=None):
 		print("came here")
-		pprint(request.data)
+		# pprint(request.data)
 		# validated_data = JSONParser().parse(request)
-		validated_data = request.POST
+		validated_data = request.data
 		pprint(validated_data)
+		print(request.user)
 		# serializer = JourneySerializer(data=data)
 		# if serializer.is_valid():
 		# 	serializer.save()
 		# 	return Response(serializer.data, status=status.HTTP_201_CREATED)
 		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		# try:
+		print("came into try")
+		user = request.user
+		# journey_name = validated_data.pop('journey_id')
 		try:
-			user = request.user
-			# journey_name = validated_data.pop('journey_id')
-			journey_date = validated_data.get("start_time")
-			# cotravel_number = validated_data.pop("cotravel_number")
-			checkpoints = validated_data.get("checkpoints")
-			print(checkpoints)
-			jrny = Journey(journey_id=journey_id,start_time=parser.parse(journey_date),
-				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"])
-				# cotravel_number=cotravel_number)
-			print("came here")
-			jrny.save()
-			jrny.participants.add(user)
-			for i,x in enumerate(checkpoints):
-				loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
-				JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
-			return Response(validated_data, status=status.HTTP_201_CREATED)
+			journey_date = parser.parse(validated_data.get("start_time"))
 		except:
-			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+			journey_date = datetime.datetime.now()
+		print(journey_date)
+		# cotravel_number = validated_data.pop("cotravel_number")
+		checkpoints = json.loads(validated_data.get("checkpoints"))
+		print(checkpoints)
+		jrny = Journey(journey_id=journey_id,start_time=journey_date,
+			source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"])
+			# cotravel_number=cotravel_number)
+		
+		jrny.save()
+		print("came here")
+		jrny.participants.add(user)
+		print("came here")
+		for i,x in enumerate(checkpoints):
+			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+			print("came here")
+			JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
+		return Response(validated_data, status=status.HTTP_201_CREATED)
+		# except:
+		return Response({}, status=status.HTTP_400_BAD_REQUEST)
 class UserNotifications(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 	def get_user_notifications(self,username):

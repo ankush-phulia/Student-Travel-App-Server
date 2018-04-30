@@ -2,6 +2,7 @@ from rest_framework import serializers
 from info.models import *
 from django.contrib.auth.models import User
 from dateutil import parser
+import datetime
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -11,6 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
 	user_from = UserSerializer()
 	user_to = UserSerializer()
+	creation_time = serializers.SerializerMethodField()
+
+	def get_creation_time(self, obj):
+		return obj.creation_time.replace(second=0, microsecond=0)
+		# return datetime.datetime.strptime(obj.creation_time.strftime("yyyy-MM-dd HH:mm"),"yyyy-MM-dd HH:mm")
 
 	class Meta:
 		model = Notification
