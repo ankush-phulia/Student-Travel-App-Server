@@ -26,6 +26,13 @@
     </style>
 
     <style type="text/css">
+    .legend { list-style: none; }
+    .legend li { float: left; margin-right: 10px; }
+    .legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+    /* your colors */
+    .legend .jrny { background-color: #ffb380; }
+    .legend .trp { background-color: #b3ffb3; }
+    .legend .lgstc { background-color: #80aaff; }
     </style>
 </head>
 {% endblock %}
@@ -72,13 +79,22 @@
 
         <div id="manageTab" class="tab-pane fade">
             <h5>Here are the notifications for you</h5>
+            <br>
+            <div>
+            <ul class="legend">
+                <li><span class="jrny"></span> Journey Related </li>
+                <li><span class="trp"></span> Trip Related</li>
+                <li><span class="lgstc"></span> Logistis Related</li>
+            </ul>
+            </div>
+            <br>
+            <br>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered">
                     <thead>
                       <tr style="background: #2C2B2A; color: white">
                         <th rowspan="2" style="text-align: center;">From User</th>
                         <th rowspan="2" style="text-align: center;">Time</th>
-                        <th rowspan="2" style="text-align: center;">Type</th>
                         <th rowspan="2" colspan="2" style="text-align: center;">Title</th>
                         <th rowspan="2" colspan="4" style="text-align: center;">Description</th>
 
@@ -87,10 +103,15 @@
                     </thead>
                     <tbody>
                         {% for notif in notifs %}
-                        <tr>
+                        {% if notif.notif_type == "Logistics Related" %}
+                        <tr style="background-color: #80aaff;">
+                        {% elif notif.notif_type == "Journey Related" %}
+                        <tr style="background-color: #ffb380;">
+                        {% else %}
+                        <tr style="background-color: #b3ffb3;">
+                        {% endif %}
                             <td style="text-align: center;">{{notif.user_from}}</td>
                             <td style="text-align: center;">{{notif.creation_time}}</td>
-                            <td style="text-align: center;">{{notif.type}}</td>
                             <td colspan="2" style="text-align: center;">{{notif.title}}</td>
                             <td colspan="4" style="text-align: center;">{{notif.description}}</td>
                             <!-- <td style="text-align: center;"><a href="alerts_tweets?alert_id={{alert.id}}" target="_blank">{{alert.tweet_count}}</a></td>
@@ -105,13 +126,23 @@
 
         <div id="manage_sentTab" class="tab-pane fade">
             <h5>Here are the notifications sent by you</h5>
+            <br>
+            <div>
+            <ul class="legend">
+                <li><span class="jrny"></span> Journey Related </li>
+                <li><span class="trp"></span> Trip Related</li>
+                <li><span class="lgstc"></span> Logistis Related</li>
+            </ul>
+            </div>
+            <br>
+            <br>
+
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered">
                     <thead>
                       <tr style="background: #2C2B2A; color: white">
-                        <th rowspan="2" style="text-align: center;">To User</th>
+                        <th rowspan="2" style="text-align: center;">From User</th>
                         <th rowspan="2" style="text-align: center;">Time</th>
-                        <th rowspan="2" style="text-align: center;">Type</th>
                         <th rowspan="2" colspan="2" style="text-align: center;">Title</th>
                         <th rowspan="2" colspan="4" style="text-align: center;">Description</th>
 
@@ -120,15 +151,17 @@
                     </thead>
                     <tbody>
                         {% for notif in notifs_sent %}
-                        <tr>
-                            <td style="text-align: center;">{{notif.user_to}}</td>
+                        {% if notif.notif_type == "Logistics Related" %}
+                        <tr style="background-color: #80aaff;">
+                        {% elif notif.notif_type == "Journey Related" %}
+                        <tr style="background-color: #ffb380;">
+                        {% else %}
+                        <tr style="background-color: #b3ffb3;">
+                        {% endif %}
+                            <td style="text-align: center;">{{notif.user_from}}</td>
                             <td style="text-align: center;">{{notif.creation_time}}</td>
-                            <td style="text-align: center;">{{notif.type}}</td>
                             <td colspan="2" style="text-align: center;">{{notif.title}}</td>
                             <td colspan="4" style="text-align: center;">{{notif.description}}</td>
-                            <!-- <td style="text-align: center;"><a href="alerts_tweets?alert_id={{alert.id}}" target="_blank">{{alert.tweet_count}}</a></td>
-                            <td style="text-align: center;"><a class="btn btn-danger" href="alerts_delete?alert_id={{alert.id}}">Delete</a></td>
-                        -->
                         </tr>
                         {% endfor %}
                     </tbody>

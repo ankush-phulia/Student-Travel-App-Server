@@ -61,7 +61,7 @@ urlpatterns = [
     url(r'^user_trips/trip_create_handler1/$', views.trip_creation_handler1, name='trip_create_handler1'),
     url(r'^user_trips/trip_create_handler2/$', views.trip_creation_handler2, name='trip_create_handler2'),
     url(r'^user_trips/trip_modify_handler/$', views.trip_modify_handler, name='trip_modify_handler'),
-    
+
     # url(r'^user_trips/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
     # url(r'^user_trips/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
 
@@ -70,6 +70,7 @@ urlpatterns = format_suffix_patterns(urlpatterns)
 # API key AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU
 # TODO:
 # remove rating from journey point list
-# make api to edit user info
-# introduce id field in notification model
-# TODO display only new notification in dashboard
+# introduce rating of user with like dislike button in closed trip
+# DONE == make api to edit user info
+# DONE == introduce id field in notification model
+# DONE == display only new notification in dashboard

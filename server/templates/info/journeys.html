@@ -31,13 +31,41 @@
 	</style>
 
 	<style type="text/css">
-		.jumbotron {
+	/*posted*/
+		.jumbotronA {
 	  padding-top: 30px;
 	  padding-bottom: 30px;
 	  margin-bottom: 30px;
 	  color: inherit;
-	  background-color: #777;
+	  background-color: #dd99ff;
+	  border-radius: 25px;
 	}
+	.jumbotronB {
+	  padding-top: 30px;
+	  padding-bottom: 30px;
+	  margin-bottom: 30px;
+	  color: inherit;
+	  background-color: #80ffff;
+	  border-radius: 25px;
+	}
+	.jumbotronC {
+	  padding-top: 30px;
+	  padding-bottom: 30px;
+	  margin-bottom: 30px;
+	  color: inherit;
+	  background-color: #ff3333;
+	  border-radius: 25px;
+	}
+	.legend { list-style: none; }
+    .legend li { float: left; margin-right: 10px; }
+    .legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+    /* your colors */
+    .legend .posted { background-color: #dd99ff; }
+    .legend .private { background-color: #80ffff; }
+    .legend .closed { background-color: #ff3333; }
+	/*#upcomingTab{
+		background-color: black;
+	}*/
 	</style>
 </head>
 {% endblock %}
@@ -52,8 +80,7 @@
 	  <li class="active"><a data-toggle="tab" href="#createTab">Create</a></li>
 	  <li><a data-toggle="tab" href="#modifyTab">Modify</a></li>
 	  <li><a data-toggle="tab" href="#requestTab">Add Requests</a></li>
-	  <li><a data-toggle="tab" href="#upcomingTab">Upcoming Journeys</a></li>
-	  <li><a data-toggle="tab" href="#closedTab">Closed Journeys</a></li>
+	  <li><a data-toggle="tab" href="#upcomingTab">Your Journeys</a></li>
 	</ul>
 
 	<div class="tab-content">
@@ -195,11 +222,13 @@
 					</thead>
 					<tbody>
 						{% for l in req_lis %}
+						<input type="hidden" name="flag" value="{{forloop.counter0}}" />
 						<tr>
 							<td style="text-align: center;">{{l.user_from}}</td>
 							<td style="text-align: center;">{{l.description}}</td>
 							<td style="text-align: center;">
-								<button type="submit" name="submit{{forloop.counter0}}" {%if l.disable%}disabled="disabled"{% endif %}" class="btn">Accept</button>
+								<button type="submit" name="accept{{forloop.counter0}}"  class="btn">Accept</button>
+								<button type="submit" name="reject{{forloop.counter0}}"  class="btn">Reject</button>
 							</td>
 						</tr>
 						{% endfor %}
@@ -209,26 +238,68 @@
 			</form>
 		</div>
 
-		<div id="upcomingTab" class="tab-pane fade">
+		<div id="upcomingTab" class="tab-pane fade" background-color="black">
 			<h5>Here are your journeys which have not been closed</h5>
-			{% for j in ncjlist %}
-				<div class="jumbotron" >
-				  <p style="font-size: 25px"><a href="#">{{j.journey_id}}</a></p>
-				  <p style="font-size: 20px">Tentative starting time :  {{j.start_time}}</p>
-				  <p style="font-size: 20px">Source :  {{j.source}}</p>
-				  <p style="font-size: 20px">Destination :  {{j.destination}}</p>
-
-				  <p style="font-size: 20px">Travelling with :					{% for p in j.participants.all%}
+			<br>
+            <div>
+            <ul class="legend">
+                <li><span class="private"></span> Private </li>
+                <li><span class="posted"></span> Posted</li>
+                <li><span class="closed"></span> Completed</li>
+            </ul>
+            </div>
+            <br>
+            <br>
+			{% for j in jlist %}
+			{% if j.closed %}
+				<div class="jumbotronC" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{j.journey_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{j.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{j.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Destination :  {{j.destination}}</p>
+				  </div>
+				  <div style="margin-left: 20px;">
+				  <p style="font-size: 20px;">Travellers :	{% for p in j.participants.all%}
 						<li>{{p.username}}</li>
 					{% endfor %}
 				  </p>
+				  </div>
 				</div>
-			{% endfor %}	
+			{% elif j.posted %}
+				<div class="jumbotronA" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{j.journey_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{j.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{j.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Destination :  {{j.destination}}</p>
+				  </div>
+				  <div style="margin-left: 20px;">
+				  <p style="font-size: 20px;">Travellers :	{% for p in j.participants.all%}
+						<li>{{p.username}}</li>
+					{% endfor %}
+				  </p>
+				  </div>
+				</div>
+			{% else %}
+				<div class="jumbotronB" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{j.journey_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{j.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{j.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Destination :  {{j.destination}}</p>
+				  </div>
+				  <div style="margin-left: 20px;">
+				  <p style="font-size: 20px;">Travellers :	{% for p in j.participants.all%}
+						<li>{{p.username}}</li>
+					{% endfor %}
+				  </p>
+				  </div>
+				</div>
+			{% endif %}
+			{% endfor %}
 		</div>
 
-		<div id="closedTab" class="tab-pane fade">
-			<h5>Here are your closed journeys</h5>
-		</div>
 
 	</div>
 

@@ -326,7 +326,8 @@ def Dashboard(request):
 	data["gender"] = take(userinfo.sex)
 	data["bio"] = take(userinfo.bio)
 	data["facebook_link"] = take(userinfo.facebook_link)
-	data["notifs"] = Notification.objects.filter(user_to=user)
+	data["rating"] = userinfo.rating
+	data["notifs"] = Notification.objects.filter(user_to=user,creation_time__gte=request.user.last_login)
 	print("Data is ")
 	pprint(data)
 	user_info = UserInfo.objects.get(user=user)
@@ -587,9 +588,15 @@ def user_journeys(request):
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	display1 = len(checkpoints)!=0
 	display2 = len(lis)!=0
-	ncjlist = Journey.objects.filter(participants__in=[request.user],closed=False)
+	jlist = Journey.objects.filter(participants__in=[request.user])
+	for j in jlist:
+		if(j.start_time<datetime.datetime.now() and (datetime.datetime.now()-j.start_time).days>10):
+			if(j.posted):
+				j.closed = True
+				j.save()
+	# cjlist = Journey.objects.filter(participants__in=[request.user],closed=True)
 	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,
-		"checkpoints":checkpoints,"req_lis":req_lis,"ncjlist":ncjlist})
+		"checkpoints":checkpoints,"req_lis":req_lis,"ncjlist":ncjlist,"cjlist":cjlist})
 
 def journey_creation_handler1(request):
 	global checkpoints
@@ -665,7 +672,25 @@ def request_add_handler(request):
 	return redirect("/user_journeys/")
 
 def request_resolve_handler(request):
-	pass
+	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
+	print(request.POST)
+	index = 0
+	typ = 0
+	for i in range(len(req_lis)):
+		if("accept"+str(i) in request.POST):
+			index = i
+			typ = 1
+		elif("reject"+str(i) in request.POST):
+			index = i
+			typ = 0
+	print(index,typ)
+	req = req_lis[index]
+	if(typ==0):
+		req.resolved = "Request rejected by "+request.user.username
+	if(typ==1):
+		req.resolved = "Request accepted by "+request.user.username
+	req.save()
+	return redirect("/user_journeys/")
 
 
 ##########################################################################################################################################

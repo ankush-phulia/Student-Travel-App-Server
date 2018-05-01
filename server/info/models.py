@@ -42,6 +42,7 @@ class UserInfo(models.Model):
 	facebook_link = models.CharField(max_length=200)
 	bio = models.TextField(default='', blank=True)
 	phone = models.CharField(max_length=20, blank=True, default='')
+	rating = models.CharField(max_length=20,default='3')
 	def __str__(self):
 		return self.user.username
 
