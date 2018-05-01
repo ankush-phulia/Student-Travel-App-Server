@@ -30,7 +30,8 @@ from pprint import *
 import datetime,json
 from dateutil import parser
 from geoposition.fields import GeopositionField
-
+from base64 import b64encode
+import base64
 # from mapwidgets.widgets import GooglePointFieldWidget, GoogleStaticOverlayMapWidget
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
@@ -329,10 +330,11 @@ def Dashboard(request):
 	print("Data is ")
 	pprint(data)
 	user_info = UserInfo.objects.get(user=user)
-	data["user_info"] = user_info
-	print(user_info.photo.url)
-	table = UserInfoTable(data)
-	RequestConfig(request).configure(table)
+	# image = b64encode(user_info.photo)
+	data["image"] = user_info.photo
+	# print(user_info.photo.url)
+	# table = UserInfoTable(data)
+	# RequestConfig(request).configure(table)
 	return render(request, "info/dashboard.html",data)
 
 
@@ -342,21 +344,21 @@ class UserProfileForm(forms.ModelForm):
 		fields = ['first_name', 'last_name', 'email']
 
 class ModifyInfoForm(forms.Form):
-	email = forms.EmailField(label="Email Address",required=True)
-	password = forms.CharField(widget=forms.PasswordInput,required=True)
-	password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=True)
+	email = forms.EmailField(required=False,label="Email Address")
+	password = forms.CharField(widget=forms.PasswordInput,required=False)
+	password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=False)
 	first_name = forms.CharField(required=False,initial="")
 	last_name = forms.CharField(required=False,initial="")
 	bio = forms.CharField( widget=forms.Textarea, required=False,initial="")
 	facebook_link = forms.CharField(required=False,initial="")
 
-	gender = forms.ChoiceField(choices=((None, ''), ('F', 'Female'), ('M', 'Male'), ('O', 'Other')))
-
-	layout = Layout(Fieldset("Modify your details here.", 'email',
-					Row('password', 'password_confirm'),
-					Fieldset('Pesonal details',
-							 Row('first_name', 'last_name'),
-							 'bio','facebook_link','gender')))
+	gender = forms.ChoiceField(required=False,choices=((None, ''), ('Female', 'Female'), ('Male', 'Male'), ('Other', 'Other')))
+	img = forms.ImageField(required=False,)
+	# layout = Layout(Fieldset("Modify your details here.", 'email',
+	# 				Row('password', 'password_confirm'),
+	# 				Fieldset('Pesonal details',
+	# 						 Row('first_name', 'last_name'),
+	# 						 'bio','facebook_link','gender','img')))
 
 @login_required
 def edit_user(request):
@@ -365,11 +367,12 @@ def edit_user(request):
 	if(request.method=="GET"):
 		form = ModifyInfoForm(initial={"email":user.email,"password":user.password,
 			"first_name":user.first_name,"last_name":user.last_name,"gender":userinfo.sex,
-			"bio":userinfo.bio,"facebook_link":userinfo.facebook_link})
-		return render(request, "info/account_update.html",{"form":form})
+			"bio":userinfo.bio,"facebook_link":userinfo.facebook_link,})
+		return render(request, "info/account_update.html",{"form":form,"user":user,"userinfo":userinfo})
 		error = ""
 	elif(request.method=="POST"):
-		form = RegistrationForm(request.POST)
+		print(request.FILES)
+		form = ModifyInfoForm(request.POST)
 		if form.is_valid():
 
 			email = form.cleaned_data["email"]
@@ -377,20 +380,29 @@ def edit_user(request):
 			password_confirm = form.cleaned_data["password_confirm"]
 			if(password!=password_confirm):
 				error= "Sorry. The passwords don't match!"
-				return render(request,'info/register.html', locals())
+				return render(request,'info/account_update.html', locals())
 
 			first_name = form.cleaned_data["first_name"]
 			last_name = form.cleaned_data["first_name"]
 			gender = form.cleaned_data["first_name"]
-			agree_toc = form.cleaned_data["agree_toc"]
+
 			bio = form.cleaned_data["bio"]
 			facebook_link = form.cleaned_data["facebook_link"]
+			img = request.FILES["img"]
+			print(bio)
+			print(img)
+			if(img):
+				b64_img = base64.b64encode(img.file.read())
+				userinfo.photo = b64_img
+			user.first_name = first_name
+			userinfo.save()
+			user.save()
 			# user = User.objects.create(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
 			# UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link)
 			return redirect("/dashboard/")
 		else:
 			error = "The form is not valid. Some of the required fields not entered."
-			return render(request,'info/register.html', locals())
+			return render(request,'info/account_update.html', locals())
 
 
 class RegistrationForm(forms.Form):
