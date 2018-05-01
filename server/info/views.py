@@ -345,8 +345,8 @@ class UserProfileForm(forms.ModelForm):
 
 class ModifyInfoForm(forms.Form):
 	email = forms.EmailField(required=False,label="Email Address")
-	password = forms.CharField(widget=forms.PasswordInput,required=False)
-	password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=False)
+	# password = forms.CharField(widget=forms.PasswordInput,required=False)
+	# password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=False)
 	first_name = forms.CharField(required=False,initial="")
 	last_name = forms.CharField(required=False,initial="")
 	bio = forms.CharField( widget=forms.Textarea, required=False,initial="")
@@ -376,25 +376,34 @@ def edit_user(request):
 		if form.is_valid():
 
 			email = form.cleaned_data["email"]
-			password = form.cleaned_data["password"]
-			password_confirm = form.cleaned_data["password_confirm"]
-			if(password!=password_confirm):
-				error= "Sorry. The passwords don't match!"
-				return render(request,'info/account_update.html', locals())
+			# password = form.cleaned_data["password"]
+			# password_confirm = form.cleaned_data["password_confirm"]
+			# if(password!=password_confirm):
+			# 	error= "Sorry. The passwords don't match!"
+			# 	return render(request,'info/account_update.html', locals())
 
 			first_name = form.cleaned_data["first_name"]
-			last_name = form.cleaned_data["first_name"]
-			gender = form.cleaned_data["first_name"]
+			last_name = form.cleaned_data["last_name"]
+			gender = form.cleaned_data["gender"]
 
 			bio = form.cleaned_data["bio"]
 			facebook_link = form.cleaned_data["facebook_link"]
-			img = request.FILES["img"]
-			print(bio)
-			print(img)
-			if(img):
+			try:
+				img = request.FILES["img"]
 				b64_img = base64.b64encode(img.file.read())
 				userinfo.photo = b64_img
+			except:
+				img  = userinfo.photo
+			print(bio)
+			print(img)
+			# if(img):
 			user.first_name = first_name
+			user.last_name = last_name
+			# user.password = password
+			userinfo.sex = gender
+			userinfo.bio = bio
+			userinfo.facebook_link = facebook_link
+
 			userinfo.save()
 			user.save()
 			# user = User.objects.create(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
@@ -498,10 +507,10 @@ def notification_create_handler(request):
 
 
 class LocationForm(forms.Form):
-	location_name = forms.CharField(required=True)
+	# location_name = forms.CharField(required=True)
 	# location_name = forms.PointField(widget=GooglePointFieldWidget)
 	location_type = forms.ChoiceField(choices=((None, ''),('Trip Point', 'Trip Point'), ('Journey Point', 'Journey Point')))
-	layout = Layout(Fieldset("Provide the location information here",'location_name', 'location_type'))
+	# layout = Layout(Fieldset('location_type'))
 
 class LocationForm2(forms.Form):
 	location_name = GeopositionField()
@@ -515,11 +524,13 @@ def user_locations(request):
 
 @login_required
 def location_create_handler(request):
+	pprint(request.POST)
+	pprint(request.FILES)
 	form = LocationForm(request.POST)
 	pprint(form)
 	error = ""
 	if form.is_valid():
-		location_name = form.cleaned_data["location_name"]
+		location_name = request.POST["location_name"]
 		location_type = form.cleaned_data["location_type"]
 		LocationPoint.objects.create(user=request.user,location_name=location_name,location_type=location_type)
 	else:
