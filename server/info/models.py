@@ -36,6 +36,7 @@ TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train"]]
 # 		return datetime.datetime.strptime(value.strftime("yyyy-MM-dd HH:mm"),"yyyy-MM-dd HH:mm")
 
 class UserInfo(models.Model):
+	photo = models.ImageField(blank=True,upload_to = "/photos/" ,default='no_photo.jpg')
 	user = models.ForeignKey(User,on_delete=models.CASCADE)
 	sex = models.CharField(choices=SEX_TYPES,max_length=50)
 	facebook_link = models.CharField(max_length=200)

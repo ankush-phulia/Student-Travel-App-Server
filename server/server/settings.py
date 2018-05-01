@@ -47,9 +47,9 @@ INSTALLED_APPS = [
     'material.frontend',
     "geoposition",
     'easy_maps',
-    "mapwidgets",
+    # "mapwidgets",
     'bootstrap3',
-    'django_extensions',
+    # 'django_extensions',
 ]
 
 GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
@@ -141,3 +141,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL='/media/'
+MEDIA_ROOT = BASE_DIR

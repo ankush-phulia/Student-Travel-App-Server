@@ -77,7 +77,7 @@ class UserInformationUpdate(APIView):
 			first_name = validated_data.get("first_name",user.first_name)
 			last_name = validated_data.get("last_name",user.last_name)
 			email = validated_data.get("email",user.email)
-			
+
 			sex = validated_data.get("gender",ui.sex)
 			facebook_link = validated_data.get("facebook_link",ui.facebook_link)
 			bio = validated_data.get("bio",ui.bio)
@@ -328,6 +328,9 @@ def Dashboard(request):
 	data["notifs"] = Notification.objects.filter(user_to=user)
 	print("Data is ")
 	pprint(data)
+	user_info = UserInfo.objects.get(user=user)
+	data["user_info"] = user_info
+	print(user_info.photo.url)
 	table = UserInfoTable(data)
 	RequestConfig(request).configure(table)
 	return render(request, "info/dashboard.html",data)
