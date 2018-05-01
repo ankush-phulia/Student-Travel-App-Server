@@ -518,9 +518,10 @@ class LocationForm2(forms.Form):
 @login_required
 def user_locations(request):
 	locs = LocationPoint.objects.filter(user=request.user)
+	locations = [x.location_name for x in locs]
 	form = LocationForm()
 	form2 = LocationForm2()
-	return render(request,'info/locations.html', {"loc_form":form,"locs":locs,"loc_form2":form2})
+	return render(request,'info/locations.html', {"loc_form":form,"locs":locs,"locations":locations,"loc_form2":form2})
 
 @login_required
 def location_create_handler(request):
@@ -538,6 +539,7 @@ def location_create_handler(request):
 		return render(request,'info/locations.html', locals())
 	return redirect("/user_locations/")
 
+##########################################################################################################################################
 class JourneyCreationForm1(forms.Form):
 	travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train')),required=True)
 	def __init__(self, user, *args, **kwargs):
@@ -585,8 +587,9 @@ def user_journeys(request):
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	display1 = len(checkpoints)!=0
 	display2 = len(lis)!=0
-
-	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,"checkpoints":checkpoints,"req_lis":req_lis})
+	ncjlist = Journey.objects.filter(participants__in=[request.user],closed=False)
+	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,
+		"checkpoints":checkpoints,"req_lis":req_lis,"ncjlist":ncjlist})
 
 def journey_creation_handler1(request):
 	global checkpoints
@@ -663,3 +666,118 @@ def request_add_handler(request):
 
 def request_resolve_handler(request):
 	pass
+
+
+##########################################################################################################################################
+class TripCreationForm1(forms.Form):
+	# travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train')),required=True)
+	def __init__(self, user, *args, **kwargs):
+		super(TripCreationForm1, self).__init__(*args, **kwargs)
+		tloc = LocationPoint.objects.filter(user=user,location_type="Trip Point")
+		self.fields["location"] = forms.ChoiceField(choices=((x.location_name,x.location_name) for x in tloc))
+		# self.fields["location_2"] = forms.ChoiceField(choices=((x.location_name,x.location_name) for x in jloc))
+		self.layout = Layout(Fieldset("Provide the trip locations here",Row("location")))
+
+class TripCreationForm2(forms.Form):
+	trip_name = forms.CharField(required=True)
+	travel_date = forms.DateTimeField(required=True)
+	cotravel_number = forms.IntegerField()
+	source = forms.CharField(required=True)
+	duration = forms.CharField(required=False)
+	expected_budget = forms.CharField(required=False)
+	trip_info = forms.CharField( widget=forms.Textarea, required=False)
+
+	layout = Layout(Fieldset("Provide the trip details here","trip_name","source",Row("travel_date","cotravel_number"),Row("duration","expected_budget"),"trip_info"))
+
+class TripModifyForm(forms.Form):
+	def __init__(self, user, *args, **kwargs):
+		super(TripModifyForm, self).__init__(*args, **kwargs)
+		trips = Trip.objects.filter(participants__in=[user],posted=False)
+		self.fields["trip_name"] = forms.ChoiceField(choices=((x,x.trip_id) for x in trips))
+		self.layout = Layout(Fieldset("Provide the trip here and select one of the options","trip_name"))
+
+# display1 = False
+display2 = False
+locations = []
+matching_tlist = []
+
+@login_required
+def user_trips(request):
+	# global display1
+	# global display2
+	global locations
+	global matching_tlist
+	tform1 = TripCreationForm1(request.user)
+	tform2 = TripCreationForm2()
+	tmform = TripModifyForm(request.user)
+	lis = []
+	for o,dis in matching_tlist:
+		d = {}
+		d["trip_name"] = o.trip_id
+		d["trip_date"] = o.start_time
+		d["trip_participants"] = [x.username for x in o.participants.all()]
+		d["disable"] = dis
+		lis.append(d)
+	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Trip Related",resolved="No")
+	display1 = len(locations)!=0
+	display2 = len(lis)!=0
+
+	return render(request,'info/trips.html', {"tform1":tform1,"tform2":tform2,"tmform":tmform,"display1":display1,"display2":display2,"lis":lis,"locations":locations,"req_lis":req_lis})
+
+def trip_creation_handler1(request):
+	global locations
+	if("add_checkpoint" in request.POST):
+		pprint(request.POST)
+		# form = JourneyCreationForm1(request.POST)
+		# if form.is_valid():
+		d = {}
+		d["location"] = request.POST.get("location")
+		# d["checkpointB"] = request.POST.get("location_2")
+		# d["means"] = request.POST.get("travel_type")
+		locations.append(d)
+		# else:
+		# 	error = "The form is not valid. Some of the required fields not entered."
+		# 	return render(request,'info/journeys.html', locals())
+	return redirect("/user_trips/")
+
+def trip_creation_handler2(request):
+	global locations
+	# form = JourneyCreationForm1(request.POST)
+	# if form.is_valid():
+	pprint(locations)
+	pprint(request.POST)
+	trip_name = request.POST.get("trip_name")
+	trip_date = request.POST.get("travel_date")
+	cotravel_number = request.POST.get("cotravel_number")
+	source = request.POST.get("source")
+	duration = request.POST.get("duration")
+	expected_budget = request.POST.get("expected_budget")
+	trip_info = request.POST.get("trip_info")
+
+	trp = Trip(trip_id=trip_name,start_time=parser.parse(trip_date),
+		source=source,cotravel_number=cotravel_number,duration=duration,expected_budget=expected_budget,trip_info=trip_info)
+	trp.save()
+	trp.participants.add(request.user)
+
+	for i,x in enumerate(locations):
+		loc = LocationPoint.objects.get(location_name=x["location"],user=request.user)
+		TripPoint.objects.create(location=loc,trip=trp)
+	locations = []
+	return redirect("/user_trips/")
+
+
+def trip_modify_handler(request):
+	global matching_tlist
+	pprint(request.POST)
+	trp = Trip.objects.get(participants__in=[request.user],trip_id=request.POST.get("trip_name"))
+	if("search" in request.POST):
+		matching_tlist = match_trips(request.user,trp)
+	elif("post" in request.POST):
+		trp.posted=True
+		trp.save()
+		matching_tlist = []
+	elif("delete" in request.POST):
+		trp.delete()
+		matching_tlist = []
+	return redirect("/user_trips/")
+

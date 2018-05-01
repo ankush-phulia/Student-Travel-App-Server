@@ -91,3 +91,30 @@ class JourneyPoint(models.Model):
 	def __str__(self):
 		return self.location.location_name
 
+class Attraction(models.Model):
+	attraction = models.CharField(max_length=100)
+
+class Trip(models.Model):
+	trip_id = models.CharField(max_length=50)
+	start_time = models.DateTimeField()
+	source  = models.CharField(max_length=100,default="IIT Delhi")
+	duration = models.CharField(max_length=50,default="4")
+	expected_budget = models.CharField(max_length=50,default="5000")
+	trip_info = models.TextField()
+
+	cotravel_number = models.CharField(max_length=10,default="2")
+	participants = models.ManyToManyField(User)
+	attractions = models.ManyToManyField(Attraction)
+	posted = models.BooleanField(default=False)
+	closed = models.BooleanField(default=False)
+
+	rating  = models.CharField(max_length=10,default="2.5")
+	def __str__(self):
+		return self.trip_id
+
+class TripPoint(models.Model):
+	location = models.ForeignKey(LocationPoint)
+
+	trip = models.ForeignKey(Trip,related_name="checkpoints")
+	def __str__(self):
+		return self.location.location_name

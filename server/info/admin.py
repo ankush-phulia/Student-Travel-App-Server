@@ -7,3 +7,7 @@ admin.site.register(Notification)
 admin.site.register(JourneyPoint)
 admin.site.register(LocationPoint)
 admin.site.register(Journey)
+admin.site.register(Attraction)
+admin.site.register(Trip)
+admin.site.register(TripPoint)
+

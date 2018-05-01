@@ -8,6 +8,12 @@
 
 {% include 'material/includes/material_css.html' %}
 <script src="{% static 'material/js/jquery.js' %}"></script>
+<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script> -->
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8IJzvzIJ5xkqoFHGJPuMMkx4RWACjgB8&libraries=places&callback=initMap"
+        async defer></script>
+ -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvWd4Px09r2SmLji0_hPRokc6gBmK7Gmo&libraries=places&callback=initMap"></script>
+
 {% include 'material/includes/material_js.html' %}
 {% load material_form %}
 
@@ -26,7 +32,7 @@
 
 	  #map {
         height: 40%;
-        width: 40%;
+        width: 100%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -135,6 +141,12 @@
 						<form method="POST" action="location_create_handler/">
                
                <div>
+               <script>
+                  $(document).ready(function(){
+                   initMap()
+                  });
+              </script>
+                <!-- <div class="pac-card" id="pac-card" > -->
                 <div class="pac-card" id="pac-card" >
                   <div>
                     <div id="title">
@@ -190,7 +202,8 @@
 				</table>
 			</div>
       <!-- TODO : Show the map with all the locations here -->
-		</div>
+		  <div id="map2" style="width: 500px; height: 400px;"></div>
+    </div>
 
 	</div>
 
@@ -262,9 +275,50 @@
 
        }
 
+
+    var locations = {{locations}};
+
+    var map = new google.maps.Map(document.getElementById('map2'), {
+      zoom: 10,
+      center: new google.maps.LatLng(-33.92, 151.25),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+    var geocoder = new google.maps.Geocoder();
+
+    for (i = 0; i < locations.length; i++) {  
+      geocoder.geocode({'address': locations[i]}, function(results, status) {
+          if (status === 'OK') {
+            map.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location
+            });
+
+            // 
+            google.maps.event.addListener(marker, 'click', (function(marker, i) {
+              return function() {
+                infowindow.setContent(locations[i]);
+                infowindow.open(map, marker);
+              }
+            })(marker, i));
+
+            // 
+
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+    }
+
+  </script>
+
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8IJzvzIJ5xkqoFHGJPuMMkx4RWACjgB8&libraries=places&callback=initMap"
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8IJzvzIJ5xkqoFHGJPuMMkx4RWACjgB8&libraries=places&callback=initMap"
         async defer></script>
-
+ -->
 {% endblock %}

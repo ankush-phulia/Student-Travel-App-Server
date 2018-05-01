@@ -57,6 +57,14 @@ urlpatterns = [
     url(r'^user_journeys/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
     url(r'^user_journeys/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
 
+    url(r'^user_trips/$', views.user_trips, name='user_trips'),
+    url(r'^user_trips/trip_create_handler1/$', views.trip_creation_handler1, name='trip_create_handler1'),
+    url(r'^user_trips/trip_create_handler2/$', views.trip_creation_handler2, name='trip_create_handler2'),
+    url(r'^user_trips/trip_modify_handler/$', views.trip_modify_handler, name='trip_modify_handler'),
+    
+    # url(r'^user_trips/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
+    # url(r'^user_trips/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
+
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns = format_suffix_patterns(urlpatterns)
 # API key AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU
