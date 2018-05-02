@@ -39,6 +39,11 @@ class JourneyPointSerializer(serializers.ModelSerializer):
 		model = JourneyPoint
 		fields = ("location","transport","point_id",)
 
+class TripPointSerializer(serializers.ModelSerializer):
+	location = LocationPointSerializer()
+	class Meta:
+		model = JourneyPoint
+		fields = ("location")
 
 class UserInfoSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
@@ -79,3 +84,16 @@ class JourneySerializer(serializers.ModelSerializer):
 			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
 			JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
 		return jrny
+
+
+class TripSerializer(serializers.ModelSerializer):
+	locations = TripPointSerializer(read_only=True,many=True)
+	participants = UserSerializer(many=True)
+	start_time = serializers.SerializerMethodField()
+
+	def get_start_time(self, obj):
+		return obj.start_time.replace(second=0, microsecond=0)
+	class Meta:
+		model = Journey
+		fields = ("locations","participants","start_time","source","duration","trip_id",
+			"trip_info","expected_budget","cotravel_number","closed","posted")
