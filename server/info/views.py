@@ -281,31 +281,31 @@ class JourneyCreate(APIView):
 		validated_data = request.data
 		pprint(validated_data)
 		print(request.user)
-		# try:
-		user = request.user
 		try:
-			journey_date = parser.parse(validated_data.get("start_time"))
+			user = request.user
+			try:
+				journey_date = parser.parse(validated_data.get("start_time"))
+			except:
+				journey_date = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+			print(journey_date)
+			journey_id = validated_data["journey_id"]
+			cotravel_number = validated_data.get("cotravel_number",2)
+			checkpoints = validated_data.get("checkpoints")
+			# source = validated_data.get("source","")
+			# destination = validated_data.get("source","")
+			print(checkpoints)
+			jrny = Journey(journey_id=journey_id,start_time=journey_date,
+				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
+				cotravel_number=cotravel_number)
+			print("obtained the journey")
+			jrny.save()
+			jrny.participants.add(user)
+			for i,x in enumerate(checkpoints):
+				loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+				JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
+			return Response(validated_data, status=status.HTTP_201_CREATED)
 		except:
-			journey_date = datetime.datetime.now()+datetime.timedelta(hours=5.5)
-		print(journey_date)
-		journey_id = validated_data["journey_id"]
-		cotravel_number = validated_data.get("cotravel_number",2)
-		checkpoints = validated_data.get("checkpoints")
-		# source = validated_data.get("source","")
-		# destination = validated_data.get("source","")
-		print(checkpoints)
-		jrny = Journey(journey_id=journey_id,start_time=journey_date,
-			source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
-			cotravel_number=cotravel_number)
-		print("obtained the journey")
-		jrny.save()
-		jrny.participants.add(user)
-		for i,x in enumerate(checkpoints):
-			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
-			JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
-		return Response(validated_data, status=status.HTTP_201_CREATED)
-		# except:
-		# 	return Response({}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneySearch(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
