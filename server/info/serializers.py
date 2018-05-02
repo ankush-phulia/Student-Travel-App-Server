@@ -44,7 +44,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
 	class Meta:
 		model = UserInfo
-		fields = ('user','sex','facebook_link',"phone","bio")
+		fields = ('user','sex','facebook_link',"phone","bio","photo")
 
 class JourneySerializer(serializers.ModelSerializer):
 	checkpoints = JourneyPointSerializer(read_only=True,many=True)

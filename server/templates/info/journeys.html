@@ -13,6 +13,7 @@
  -->
 {% include 'material/includes/material_css.html' %}
 <script src="{% static 'material/js/jquery.js' %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvWd4Px09r2SmLji0_hPRokc6gBmK7Gmo"></script>
 {% include 'material/includes/material_js.html' %}
 {% load material_form %}
 
@@ -66,6 +67,14 @@
 	/*#upcomingTab{
 		background-color: black;
 	}*/
+
+      
+	#map-canvas {
+	  height: 50%;
+	  width: 100%;
+	  margin: 0px;
+	  padding: 0px
+	}
 	</style>
 </head>
 {% endblock %}
@@ -87,7 +96,6 @@
 
 		<div id="createTab" class="tab-pane fade in active">
 			<h5>Create a new Jouney</h5>
-
 			<div class="valign-wrapper2">
 			<div class="container expand-on-small-only">
 				<div class="row valign change-form">
@@ -128,6 +136,14 @@
 			</div>
 			{% endif %}
 			<div class="valign-wrapper2">
+			
+			<div id="map-canvas"></div>
+			<script>
+                  $(document).ready(function(){
+                   mapLocation();
+                  });
+            </script>
+			
 			<div class="container expand-on-small-only">
 				<div class="row valign change-form">
 					<div class="col s12 m8 offset-m2 l8 offset-l2">
@@ -315,6 +331,58 @@
 		$("#modify_tab").removeClass("active");
 		$("#logout_tab").removeClass("active");
 	});
+
+	function mapLocation() {
+		// var locations = ["Kolkata, West Bengal, India","Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"]; 
+		var locations = {{locations|safe}};
+		var directionsDisplay = new google.maps.DirectionsRenderer();
+		var directionsService = new google.maps.DirectionsService();
+		var delhi = new google.maps.LatLng(28.7041, 77.1025);
+		var mapOptions = {
+		zoom: 7,
+		center: delhi
+		};
+		var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        var geocoder = new google.maps.Geocoder();
+        var waypts = [];
+
+	    runall();        
+
+        function runall(){
+	        for (i = 1; i < locations.length-1 ; i++) {
+		  		waypts.push({
+              		location: locations[i],
+              		stopover: true
+            	});
+		    }
+	    	
+	    	setTimeout(function(){ directions(); },1000);
+        }
+		
+		function directions(){
+				var start = locations[0];
+				var end = locations[locations.length-1];
+		
+				var request = {
+				  origin: start,
+				  destination: end,
+				  waypoints: waypts,
+				  travelMode: google.maps.TravelMode.DRIVING
+				};
+
+				directionsService.route(request, function(response, status) {
+				  if (status == google.maps.DirectionsStatus.OK) {
+				    directionsDisplay.setDirections(response);
+				    directionsDisplay.setMap(map);
+				  } else {
+				    alert("Directions Request from " + start.toUrlValue(6) + " to " + end.toUrlValue(6) + " failed: " + status);
+				  }
+				});
+
+		} 
+
+	}
+
 </script>
 
 {% endblock %}

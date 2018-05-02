@@ -13,6 +13,8 @@ urlpatterns = [
     url(r'^notifications/$', views.NotificationList.as_view()),
     url(r'^journeys/$', views.JourneyList.as_view()),
     url(r'^single_journey/(?P<journey_id>[ 0-9a-zA-Z_@.-]+)/$', views.JourneySingle.as_view()),
+    
+    # url(r'^create_journey/$', views.JourneyCreate.as_view()),
     url(r'^search_journey/$', views.JourneySearch.as_view()),
     url(r'^post_journey/$', views.JourneyPost.as_view()),
     url(r'^close_journey/$', views.JourneyClose.as_view()),

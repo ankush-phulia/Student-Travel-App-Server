@@ -88,6 +88,7 @@ class UserInformationUpdate(APIView):
 			facebook_link = validated_data.get("facebook_link",ui.facebook_link)
 			bio = validated_data.get("bio",ui.bio)
 			phone = validated_data.get("phone",ui.phone)
+			photo = validated_data.get("photo",ui.photo)
 
 			user.first_name  = first_name
 			user.last_name  = last_name
@@ -97,6 +98,7 @@ class UserInformationUpdate(APIView):
 			ui.facebook_link = facebook_link
 			ui.bio = bio
 			ui.phone = phone
+			ui.photo = photo
 			user.save()
 			ui.save()
 			return Response(validated_data, status=status.HTTP_201_CREATED)
@@ -536,6 +538,7 @@ class LocationForm2(forms.Form):
 def user_locations(request):
 	locs = LocationPoint.objects.filter(user=request.user)
 	locations = [x.location_name for x in locs]
+	locations = json.dumps(locations)
 	form = LocationForm()
 	form2 = LocationForm2()
 	return render(request,'info/locations.html', {"loc_form":form,"locs":locs,"locations":locations,"loc_form2":form2})
@@ -604,6 +607,12 @@ def user_journeys(request):
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	display1 = len(checkpoints)!=0
 	display2 = len(lis)!=0
+	if(len(checkpoints)!=0):
+		locations = [x["checkpointA"] for x in checkpoints]
+		locations.append(checkpoints[-1]["checkpointB"])
+	else:
+		locations = []
+	locations = json.dumps(locations)
 	jlist = Journey.objects.filter(participants__in=[request.user])
 	for j in jlist:
 		# and (datetime.datetime.now()+datetime.timedelta(hours=5.5)-j.start_time.replace(tzinfo=utc)).days>10)
@@ -613,7 +622,7 @@ def user_journeys(request):
 				j.save()
 	# cjlist = Journey.objects.filter(participants__in=[request.user],closed=True)
 	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,
-		"checkpoints":checkpoints,"req_lis":req_lis,"jlist":jlist})
+		"checkpoints":checkpoints,"req_lis":req_lis,"jlist":jlist,"locations":locations})
 
 def journey_creation_handler1(request):
 	global checkpoints

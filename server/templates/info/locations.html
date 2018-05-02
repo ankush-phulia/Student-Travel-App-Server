@@ -12,7 +12,7 @@
 <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8IJzvzIJ5xkqoFHGJPuMMkx4RWACjgB8&libraries=places&callback=initMap"
         async defer></script>
  -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvWd4Px09r2SmLji0_hPRokc6gBmK7Gmo&libraries=places&callback=initMap"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvWd4Px09r2SmLji0_hPRokc6gBmK7Gmo&libraries=places"></script>
 
 {% include 'material/includes/material_js.html' %}
 {% load material_form %}
@@ -107,6 +107,7 @@
         font-weight: 500;
         padding: 6px 12px;
       }
+
 	</style>
 
 	<style type="text/css">
@@ -202,7 +203,12 @@
 				</table>
 			</div>
       <!-- TODO : Show the map with all the locations here -->
-		  <div id="map2" style="width: 500px; height: 400px;"></div>
+		  <div id="map2" style="width: 100%; height: 40%;"></div>
+       <script>
+                  $(document).ready(function(){
+                   showMarkers()
+                  });
+      </script>
     </div>
 
 	</div>
@@ -269,50 +275,56 @@
           marker.setVisible(true);
           infowindowContent.children['place-icon'].src = place.icon;
           infowindowContent.children['place-name'].textContent = place.name;
-          infowindowContent.children['place-address'].textContent = address;
+          // infowindowContent.children['place-address'].textContent = address;
           infowindow.open(map, marker);
         });
 
        }
 
 
-    var locations = {{locations}};
+       function showMarkers(){
 
-    var map = new google.maps.Map(document.getElementById('map2'), {
-      zoom: 10,
-      center: new google.maps.LatLng(-33.92, 151.25),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
+            // var locations = ["Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"]; 
+            var locations = {{locations|safe}};
 
-    var infowindow = new google.maps.InfoWindow();
 
-    var marker, i;
-    var geocoder = new google.maps.Geocoder();
-
-    for (i = 0; i < locations.length; i++) {  
-      geocoder.geocode({'address': locations[i]}, function(results, status) {
-          if (status === 'OK') {
-            map.setCenter(results[0].geometry.location);
-            var marker = new google.maps.Marker({
-              map: map,
-              position: results[0].geometry.location
+            var map = new google.maps.Map(document.getElementById('map2'), {
+              zoom: 10,
+              center: new google.maps.LatLng(-33.92, 151.25),
+              mapTypeId: google.maps.MapTypeId.ROADMAP
             });
 
-            // 
-            google.maps.event.addListener(marker, 'click', (function(marker, i) {
-              return function() {
-                infowindow.setContent(locations[i]);
-                infowindow.open(map, marker);
-              }
-            })(marker, i));
+            var infowindow = new google.maps.InfoWindow();
 
-            // 
+            var marker, i;
+            var geocoder = new google.maps.Geocoder();
 
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-          }
-        });
-    }
+            for (i = 0; i < locations.length; i++) {  
+              geocoder.geocode({'address': locations[i]}, function(results, status) {
+                  if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    var marker = new google.maps.Marker({
+                      map: map,
+                      position: results[0].geometry.location
+                    });
+
+                    // 
+                    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                      return function() {
+                        infowindow.setContent(locations[i]);
+                        infowindow.open(map, marker);
+                      }
+                    })(marker, i));
+
+                    // 
+
+                  } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                  }
+                });
+            }
+       }
+
 
   </script>
 
