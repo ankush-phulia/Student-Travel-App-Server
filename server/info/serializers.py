@@ -94,6 +94,6 @@ class TripSerializer(serializers.ModelSerializer):
 	def get_start_time(self, obj):
 		return obj.start_time.replace(second=0, microsecond=0)
 	class Meta:
-		model = Journey
+		model = Trip
 		fields = ("locations","participants","start_time","source","duration","trip_id",
 			"trip_info","expected_budget","cotravel_number","closed","posted")
