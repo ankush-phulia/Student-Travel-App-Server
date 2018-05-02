@@ -6,6 +6,8 @@ from django.db.models.signals import post_save
 from django.db.models.signals import post_save
 from dateutil import parser
 import datetime
+from django.utils import timezone
+
 # Create your models here.
 NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
 SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
@@ -43,6 +45,7 @@ class UserInfo(models.Model):
 	bio = models.TextField(default='', blank=True)
 	phone = models.CharField(max_length=20, blank=True, default='')
 	rating = models.CharField(max_length=20,default='3')
+	last_visit = models.DateTimeField()
 	def __str__(self):
 		return self.user.username
 
@@ -80,7 +83,7 @@ class Journey(models.Model):
 	participants = models.ManyToManyField(User)
 	posted = models.BooleanField(default=False)
 	closed = models.BooleanField(default=False)
-
+	travel_id = models.CharField(max_length=50,default="Going Home")
 	def __str__(self):
 		return self.journey_id
 

@@ -32,6 +32,11 @@ from dateutil import parser
 from geoposition.fields import GeopositionField
 from base64 import b64encode
 import base64
+
+from django.utils import timezone
+import pytz
+
+utc=pytz.UTC
 # from mapwidgets.widgets import GooglePointFieldWidget, GoogleStaticOverlayMapWidget
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
@@ -55,7 +60,7 @@ import base64
 # https://bootsnipp.com/snippets/featured/people-card-with-tabs
 
 def match_journeys(user,jrny):
-	return [[x,False] for x in Journey.objects.all() if user not in x.participants.all()]
+	return [[x,False] for x in Journey.objects.filter(posted=True,closed=False) if user not in x.participants.all()]
 
 
 class UserInformation(APIView):
@@ -160,7 +165,7 @@ class JourneySingle(APIView):
 			try:
 				journey_date = parser.parse(validated_data.get("start_time"))
 			except:
-				journey_date = datetime.datetime.now()
+				journey_date = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 			print(journey_date)
 			cotravel_number = validated_data.get("cotravel_number",2)
 			checkpoints = json.loads(validated_data.get("checkpoints"))
@@ -216,7 +221,7 @@ class MakeRequest(APIView):
 			notif_type = validated_data.get("notif_type","Logistics Related")
 			for ut in req_users:
 				Notification.objects.create(user_to=ut,user_from=user,title=title,description=description,
-					notif_type=notif_type,creation_time=datetime.datetime.now())
+					notif_type=notif_type,creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5))
 			return Response(validated_data, status=status.HTTP_201_CREATED)
 		except:
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -298,6 +303,13 @@ class JourneyClose(APIView):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 ###########################################################################################
+
+def logout(request):
+	ui = UserInfo.objects.get(user=request.user)
+	ui.last_visit = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+	print(ui.last_visit)
+	ui.save()
+	return redirect("/accounts/internal_logout/")
 @login_required
 def home(request):
 	return redirect("dashboard")
@@ -327,12 +339,15 @@ def Dashboard(request):
 	data["bio"] = take(userinfo.bio)
 	data["facebook_link"] = take(userinfo.facebook_link)
 	data["rating"] = userinfo.rating
-	data["notifs"] = Notification.objects.filter(user_to=user,creation_time__gte=request.user.last_login)
+	print(userinfo.last_visit)
+	last_lg = userinfo.last_visit
+	data["notifs"] = Notification.objects.filter(user_to=user,creation_time__gte=last_lg)
 	print("Data is ")
+	print(last_lg)
 	pprint(data)
-	user_info = UserInfo.objects.get(user=user)
+	# user_info = UserInfo.objects.get(user=user)
 	# image = b64encode(user_info.photo)
-	data["image"] = user_info.photo
+	data["image"] = userinfo.photo
 	# print(user_info.photo.url)
 	# table = UserInfoTable(data)
 	# RequestConfig(request).configure(table)
@@ -497,7 +512,8 @@ def notification_create_handler(request):
 		title = form.cleaned_data["title"]
 		description = form.cleaned_data["description"]
 
-		user = Notification.objects.create(user_from=request.user,user_to=User.objects.get(username=user_to),notif_type=notif_type,title=title,description=description,creation_time=datetime.datetime.now())
+		user = Notification.objects.create(user_from=request.user,user_to=User.objects.get(username=user_to),
+			notif_type=notif_type,title=title,description=description,creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5))
 		return redirect("/user_notifications/")
 	else:
 		error = "The form is not valid. Some of the required fields not entered."
@@ -590,13 +606,14 @@ def user_journeys(request):
 	display2 = len(lis)!=0
 	jlist = Journey.objects.filter(participants__in=[request.user])
 	for j in jlist:
-		if(j.start_time<datetime.datetime.now() and (datetime.datetime.now()-j.start_time).days>10):
+		# and (datetime.datetime.now()+datetime.timedelta(hours=5.5)-j.start_time.replace(tzinfo=utc)).days>10)
+		if(j.start_time<(datetime.datetime.now()+datetime.timedelta(hours=5.5)).replace(tzinfo=utc)):
 			if(j.posted):
 				j.closed = True
 				j.save()
 	# cjlist = Journey.objects.filter(participants__in=[request.user],closed=True)
 	return render(request,'info/journeys.html', {"jform1":jform1,"jform2":jform2,"jmform":jmform,"display1":display1,"display2":display2,"lis":lis,
-		"checkpoints":checkpoints,"req_lis":req_lis,"ncjlist":ncjlist,"cjlist":cjlist})
+		"checkpoints":checkpoints,"req_lis":req_lis,"jlist":jlist})
 
 def journey_creation_handler1(request):
 	global checkpoints
@@ -667,7 +684,8 @@ def request_add_handler(request):
 	title = "Journey Add request"
 	for ut in jrny.participants.all():
 		Notification.objects.create(user_to=ut,user_from=user,title=title,description=description,
-			notif_type="Journey Related",creation_time=datetime.datetime.now())
+			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+			travel_id=jrny.journey_id)
 	matching_jlist[index][1] = True
 	return redirect("/user_journeys/")
 
@@ -687,8 +705,32 @@ def request_resolve_handler(request):
 	req = req_lis[index]
 	if(typ==0):
 		req.resolved = "Request rejected by "+request.user.username
+		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+		jrny_id = req.travel_id
+		print(jrny_id)
+		jrny = Journey.objects.get(participants__in=[request.user],journey_id=jrny_id)
+
+		desc = request.user.username+" rejected the request by "+req.user_from.username
+		for par in jrny.participants.all():
+			Notification.objects.create(user_to=par,user_from=request.user,title="Journey add request rejected",description=desc,
+					notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5))
+		Notification.objects.create(user_to=req.user_from,user_from=request.user,title="Journey add request rejected",description=desc,
+			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+			resolved="Yes")
 	if(typ==1):
 		req.resolved = "Request accepted by "+request.user.username
+		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+		print(req.description.split())
+		jrny_id = req.travel_id
+		print(jrny_id)
+		jrny = Journey.objects.get(participants__in=[request.user],journey_id=jrny_id)
+
+		jrny.participants.add(req.user_from)
+		desc = request.user.username+" accepted the request by "+req.user_from.username
+		for par in jrny.participants.all():
+			Notification.objects.create(user_to=par,user_from=request.user,title="Journey add request accepted",description=desc,
+					notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+					resolved="Yes")
 	req.save()
 	return redirect("/user_journeys/")
 

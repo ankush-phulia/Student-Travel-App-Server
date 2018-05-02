@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-
+from django.utils import timezone
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -39,18 +39,22 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'rest_framework',
 	'rest_framework.authtoken',
+
+	# 'django.contrib.sites',
 	'info',
 	'crispy_forms',
 	'django_tables2',
 	'material',
 	'material.theme.amber',
-    'material.frontend',
-    "geoposition",
-    'easy_maps',
-    # "mapwidgets",
-    'bootstrap3',
-    # 'django_extensions',
+	'material.frontend',
+	"geoposition",
+	'easy_maps',
+	# "mapwidgets",
+	'bootstrap3',
+	# 'django_extensions',
+	# "last_seen",
 ]
+# SITE_ID = 1
 
 GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
 EASY_MAPS_GOOGLE_MAPS_API_KEY = 'AIzaSyAZMN4VVZiDsO9SRKISeV20WD9Z47vUReU'
@@ -64,6 +68,7 @@ MIDDLEWARE = [
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	# 'info.middleware.SetLastVisitMiddleware',
 ]
 
 ROOT_URLCONF = 'server.urls'

@@ -38,7 +38,9 @@ urlpatterns = [
     url(r'^api-token-auth/', auth_views.obtain_auth_token),
 
     url(r'^accounts/login/$', user_auth_views.login, {'template_name': 'info/login.html'}, name='login'),
-    url(r'^accounts/logout/$', user_auth_views.logout, name='logout'),
+    url(r'^accounts/logout/$', views.logout, name='logout'),
+    url(r'^accounts/internal_logout/$', user_auth_views.logout, name='logout'),
+
     url(r'^$', views.home, name='home'),
     url(r'^dashboard/$', views.Dashboard, name='dashboard'),
     url(r'^accounts/update/$', views.edit_user, name='account_update'),
