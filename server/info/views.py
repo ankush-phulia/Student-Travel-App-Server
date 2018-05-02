@@ -144,7 +144,7 @@ class JourneyList(APIView):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class JourneyList(APIView):
+class TripList(APIView):
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
 	def get(self,request,format=None):
 		trips = Trip.objects.filter(participants__in=[request.user])
