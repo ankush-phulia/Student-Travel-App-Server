@@ -12,7 +12,7 @@ from django.utils import timezone
 NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
 SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
 LOCATION_TYPES = [(x,x) for x in ["Journey Point","Trip Point"]]
-TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train"]]
+TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train","Cab","Sleeper Train"]]
 # class UserProfile(models.Model):
 # 	user = models.OneToOneField(User, related_name='user')
 # 	# photo = FileField(verbose_name=_("Profile Picture"),
@@ -57,6 +57,7 @@ class Notification(models.Model):
 	notif_type = models.CharField(choices=NOTIFICATION_TYPES, default="Logistics Related", max_length=100)
 	creation_time = models.DateTimeField()
 	resolved = models.CharField(default="No",max_length=50)
+	travel_id = models.CharField(max_length=50,default="Going Home")
 	class Meta:
 		ordering = ("creation_time",)
 	def __str__(self):
@@ -108,6 +109,7 @@ class Trip(models.Model):
 
 	cotravel_number = models.CharField(max_length=10,default="2")
 	participants = models.ManyToManyField(User)
+	leader = models.ForeignKey(User,related_name="leader")
 	attractions = models.ManyToManyField(Attraction)
 	posted = models.BooleanField(default=False)
 	closed = models.BooleanField(default=False)

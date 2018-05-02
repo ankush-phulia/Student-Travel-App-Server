@@ -141,7 +141,7 @@
                 <table class="table table-hover table-striped table-bordered">
                     <thead>
                       <tr style="background: #2C2B2A; color: white">
-                        <th rowspan="2" style="text-align: center;">From User</th>
+                        <th rowspan="2" style="text-align: center;">To User</th>
                         <th rowspan="2" style="text-align: center;">Time</th>
                         <th rowspan="2" colspan="2" style="text-align: center;">Title</th>
                         <th rowspan="2" colspan="4" style="text-align: center;">Description</th>
@@ -158,7 +158,7 @@
                         {% else %}
                         <tr style="background-color: #b3ffb3;">
                         {% endif %}
-                            <td style="text-align: center;">{{notif.user_from}}</td>
+                            <td style="text-align: center;">{{notif.user_to}}</td>
                             <td style="text-align: center;">{{notif.creation_time}}</td>
                             <td colspan="2" style="text-align: center;">{{notif.title}}</td>
                             <td colspan="4" style="text-align: center;">{{notif.description}}</td>

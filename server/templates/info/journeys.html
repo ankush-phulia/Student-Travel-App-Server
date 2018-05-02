@@ -68,7 +68,7 @@
 		background-color: black;
 	}*/
 
-      
+
 	#map-canvas {
 	  height: 50%;
 	  width: 100%;
@@ -89,7 +89,7 @@
 	  <li class="active"><a data-toggle="tab" href="#createTab">Create</a></li>
 	  <li><a data-toggle="tab" href="#modifyTab">Modify</a></li>
 	  <li><a data-toggle="tab" href="#requestTab">Add Requests</a></li>
-	  <li><a data-toggle="tab" href="#upcomingTab">Your Journeys</a></li>
+	  <li><a data-toggle="tab" href="#upcomingTab">My Journeys</a></li>
 	</ul>
 
 	<div class="tab-content">
@@ -136,14 +136,14 @@
 			</div>
 			{% endif %}
 			<div class="valign-wrapper2">
-			
+
 			<div id="map-canvas"></div>
 			<script>
                   $(document).ready(function(){
                    mapLocation();
                   });
             </script>
-			
+
 			<div class="container expand-on-small-only">
 				<div class="row valign change-form">
 					<div class="col s12 m8 offset-m2 l8 offset-l2">
@@ -193,6 +193,7 @@
 						<th rowspan="2" style="text-align: center;">Journey name</th>
 						<th rowspan="2" style="text-align: center;">Date</th>
 						<th rowspan="2" style="text-align: center;">Participants</th>
+						<th rowspan="2" style="text-align: center;">Checkpoints</th>
 						<th rowspan="2" style="text-align: center;">Actions</th>
 
 					  </tr>
@@ -203,11 +204,16 @@
 							<td style="text-align: center;">{{l.journey_name}}</td>
 							<td style="text-align: center;">{{l.journey_date}}</td>
 							<td style="text-align: center;">
-							<ul type="square">
-								{% for p in l.journey_participants%}
-									<li>{{p}}</li>
-								{% endfor %}
-							</ul>
+							<!-- <ul type="square"> -->
+							{% for p in l.journey_participants%}
+								<li>{{p}}</li>
+							{% endfor %}
+							<!-- </ul> -->
+							</td>
+							<td style="text-align: center;">
+							{% for p in l.journey_checkpoints%}
+								<li>{{p}}</li>
+							{% endfor %}
 							</td>
 							<td style="text-align: center;">
 								<button type="submit" name="submit{{forloop.counter0}}" {%if l.disable%}disabled="disabled"{% endif %}" class="btn">Request Add</button>
@@ -255,7 +261,7 @@
 		</div>
 
 		<div id="upcomingTab" class="tab-pane fade" background-color="black">
-			<h5>Here are your journeys which have not been closed</h5>
+			<h5>Here are all your journeys</h5>
 			<br>
             <div>
             <ul class="legend">
@@ -333,7 +339,7 @@
 	});
 
 	function mapLocation() {
-		// var locations = ["Kolkata, West Bengal, India","Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"]; 
+		// var locations = ["Kolkata, West Bengal, India","Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"];
 		var locations = {{locations|safe}};
 		var directionsDisplay = new google.maps.DirectionsRenderer();
 		var directionsService = new google.maps.DirectionsService();
@@ -346,7 +352,7 @@
         var geocoder = new google.maps.Geocoder();
         var waypts = [];
 
-	    runall();        
+	    runall();
 
         function runall(){
 	        for (i = 1; i < locations.length-1 ; i++) {
@@ -355,14 +361,14 @@
               		stopover: true
             	});
 		    }
-	    	
+
 	    	setTimeout(function(){ directions(); },1000);
         }
-		
+
 		function directions(){
 				var start = locations[0];
 				var end = locations[locations.length-1];
-		
+
 				var request = {
 				  origin: start,
 				  destination: end,
@@ -379,7 +385,7 @@
 				  }
 				});
 
-		} 
+		}
 
 	}
 

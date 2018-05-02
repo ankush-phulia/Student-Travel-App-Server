@@ -31,12 +31,37 @@
 	</style>
 
 	<style type="text/css">
-		.jumbotron {
+			.jumbotronA {
 	  padding-top: 30px;
 	  padding-bottom: 30px;
 	  margin-bottom: 30px;
 	  color: inherit;
-	  background-color: #777;
+	  background-color: #dd99ff;
+	  border-radius: 25px;
+	}
+	.jumbotronB {
+	  padding-top: 30px;
+	  padding-bottom: 30px;
+	  margin-bottom: 30px;
+	  color: inherit;
+	  background-color: #80ffff;
+	  border-radius: 25px;
+	}
+	.jumbotronC {
+	  padding-top: 30px;
+	  padding-bottom: 30px;
+	  margin-bottom: 30px;
+	  color: inherit;
+	  background-color: #ff3333;
+	  border-radius: 25px;
+	}
+	.legend { list-style: none; }
+    .legend li { float: left; margin-right: 10px; }
+    .legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+    /* your colors */
+    .legend .posted { background-color: #dd99ff; }
+    .legend .private { background-color: #80ffff; }
+    .legend .closed { background-color: #ff3333; }
 	}
 	</style>
 </head>
@@ -52,8 +77,7 @@
 	  <li class="active"><a data-toggle="tab" href="#createTab">Create</a></li>
 	  <li><a data-toggle="tab" href="#modifyTab">Modify</a></li>
 	  <li><a data-toggle="tab" href="#requestTab">Add Requests</a></li>
-	  <li><a data-toggle="tab" href="#upcomingTab">Upcoming Trips</a></li>
-	  <li><a data-toggle="tab" href="#closedTab">Closed Trips</a></li>
+	  <li><a data-toggle="tab" href="#upcomingTab">My Trips</a></li>
 	</ul>
 
 	<div class="tab-content">
@@ -205,19 +229,74 @@
 		</div>
 
 		<div id="upcomingTab" class="tab-pane fade">
-			<h5>Here are your journeys which have not been closed</h5>
-				<div class="jumbotron" >
-				  <p style="font-size: 30px"><a href="#">Hello</a></p>
-				  <p style="font-size: 20px">
-				  
+			<h5>Here are your trips to take you down memory lane</h5>
+			<br>
+            <div>
+            <ul class="legend">
+                <li><span class="private"></span> Private </li>
+                <li><span class="posted"></span> Posted</li>
+                <li><span class="closed"></span> Completed</li>
+            </ul>
+            </div>
+            <br>
+            <br>
+			{% for t in tlist %}
+			{% if t.closed %}
+				<div class="jumbotronC" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Undertaken on  :  {{t.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Your leader was :  {{t.leader}}</p>
+				  </div>
+				  <div style="margin-left: 20px;">
+				  <p style="font-size: 20px;">You travelled with :	{% for p in t.participants.all %}
+						<li>{{p.username}}</li>
+					{% endfor %}
 				  </p>
+				  </div>
+
 				</div>
-				
+				  <div style="overflow: hidden; ">
+					  <a name="up{{forloop.counter0}}" style="background-color:  #00b300; float: left; margin-left: 20px;" href="/user_trips/rating_handler" class="btn btn-info btn-lg"><span class="glyphicon glyphicon-thumbs-up"></span> Upvote</a>
+					  <a name="down{{forloop.counter0}}" style="background-color:  #ff0000;float: left; margin-right: 20px;" href="/user_trips/rating_handler" class="btn btn-info btn-lg"><span class="glyphicon glyphicon-thumbs-down"></span> Downvote</a>
+				  </div>
+			{% elif t.posted %}
+				<div class="jumbotronA" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{t.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Trip Leader :  {{t.leader.username}}</p>
+				  </div>
+				  <div style="margin-left: 20px;">
+				  <p style="font-size: 20px;">Fellow Travellers :	{% for p in t.participants.all%}
+						<li>{{p.username}}</li>
+					{% endfor %}
+				  </p>
+				  </div>
+				</div>
+			{% else %}
+				<div class="jumbotronB" >
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{t.start_time}}</p>
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">Expected budget :  {{t.expected_budget}}</p>
+				  </div>
+
+				  <div style="overflow: hidden; ">
+					  <p style="font-size: 20px; float: left; margin-left: 20px;">Ideal Duration :  {{t.duration}}</p>
+					  <p style="font-size: 20px; float: right; margin-right: 20px;">How many people :  {{t.cotravel_number}}</p>
+				  </div>
+
+				</div>
+			{% endif %}
+			{% endfor %}
+
 		</div>
 
-		<div id="closedTab" class="tab-pane fade">
-			<h5>Here are your closed journeys</h5>
-		</div>
+
 
 	</div>
 

@@ -129,7 +129,7 @@
 			<h5>Add a new location</h5>
 
     <!-- Google maps div -->
-   
+
     <!--  -->
 
 
@@ -140,7 +140,7 @@
 						<div class="card" style="width:100%;padding-left:45px;padding-right:45px;padding-bottom:45px;">
 						{{error}}
 						<form method="POST" action="location_create_handler/">
-               
+
                <div>
                <script>
                   $(document).ready(function(){
@@ -196,7 +196,13 @@
 						<tr>
 							<td style="text-align: center;">{{loc.location_name}}</td>
 							<td style="text-align: center;">{{loc.location_type}}</td>
-							<td style="text-align: center;">{{loc.rating}}</td>
+							<td style="text-align: center;">
+							{% if loc.location_type == "Journey Point" %}
+							---
+							{% else %}
+							{{loc.rating}}
+							{% endif %}
+							</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -284,7 +290,7 @@
 
        function showMarkers(){
 
-            // var locations = ["Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"]; 
+            // var locations = ["Auli Laga Joshimath, Uttarakhand, India", "Manali, Himachal Pradesh, India"];
             var locations = {{locations|safe}};
 
 
@@ -299,7 +305,7 @@
             var marker, i;
             var geocoder = new google.maps.Geocoder();
 
-            for (i = 0; i < locations.length; i++) {  
+            for (i = 0; i < locations.length; i++) {
               geocoder.geocode({'address': locations[i]}, function(results, status) {
                   if (status === 'OK') {
                     map.setCenter(results[0].geometry.location);
@@ -308,7 +314,7 @@
                       position: results[0].geometry.location
                     });
 
-                    // 
+                    //
                     google.maps.event.addListener(marker, 'click', (function(marker, i) {
                       return function() {
                         infowindow.setContent(locations[i]);
@@ -316,7 +322,7 @@
                       }
                     })(marker, i));
 
-                    // 
+                    //
 
                   } else {
                     alert('Geocode was not successful for the following reason: ' + status);

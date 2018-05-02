@@ -60,8 +60,27 @@ utc=pytz.UTC
 # https://bootsnipp.com/snippets/featured/people-card-with-tabs
 
 def match_journeys(user,jrny):
-	return [[x,False] for x in Journey.objects.filter(posted=True,closed=False) if user not in x.participants.all()]
+	lis = []
+	for x in Journey.objects.filter(posted=True,closed=False):
+		print(jrny.destination)
+		cps = [jp.location.location_name for jp in JourneyPoint.objects.filter(journey=x)]
+		print(cps)
+		if(user not in x.participants.all() and jrny.destination in cps):
+			lis.append([x,False])
+	return lis
+	# return [[x,False] for x in Journey.objects.filter(posted=True,closed=False) if user not in x.participants.all() and jrny.destination in x.]
 
+def match_trips(user,trp):
+	lis = []
+	points = [tp.location.location_name for tp in TripPoint.objects.filter(trip=trp)]
+	for x in Trip.objects.filter(posted=True,closed=False):
+		# print(jrny.destination)
+		cps = [tp.location.location_name for tp in TripPoint.objects.filter(trip=x)]
+		# print(cps)
+		inter = [x for x in points if x in cps]
+		if(user not in x.participants.all() and len(inter)!=0):
+			lis.append([x,False])
+	return lis
 
 class UserInformation(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
@@ -521,13 +540,17 @@ def user_registration(request):
 				return render(request,'info/register.html', locals())
 
 			first_name = form.cleaned_data["first_name"]
-			last_name = form.cleaned_data["first_name"]
-			gender = form.cleaned_data["first_name"]
+			last_name = form.cleaned_data["last_name"]
+			gender = form.cleaned_data["gender"]
 			agree_toc = form.cleaned_data["agree_toc"]
 			bio = form.cleaned_data["bio"]
 			facebook_link = form.cleaned_data["facebook_link"]
-			user = User.objects.create(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
-			UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link)
+			user = User.objects.create(username=username,email=email,first_name=first_name,last_name=last_name)
+			user.set_password(password)
+			user.save()
+			b64_img = base64.b64encode("index.jpeg".read())
+			UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link,
+				last_visit = datetime.datetime.now()+datetime.timedelta(hours=5.5),photo=b64_img)
 			return redirect("/accounts/login/")
 		else:
 			error = "The form is not valid. Some of the required fields not entered."
@@ -609,7 +632,7 @@ def location_create_handler(request):
 
 ##########################################################################################################################################
 class JourneyCreationForm1(forms.Form):
-	travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train')),required=True)
+	travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train'),("Cab","Cab"),("Sleeper Train","Sleeper Train")),required=True)
 	def __init__(self, user, *args, **kwargs):
 		super(JourneyCreationForm1, self).__init__(*args, **kwargs)
 		jloc = LocationPoint.objects.filter(user=user,location_type="Journey Point")
@@ -645,11 +668,13 @@ def user_journeys(request):
 	jform2 = JourneyCreationForm2()
 	jmform = JourneyModifyForm(request.user)
 	lis = []
+	print(matching_jlist)
 	for o,dis in matching_jlist:
 		d = {}
 		d["journey_name"] = o.journey_id
 		d["journey_date"] = o.start_time
 		d["journey_participants"] = [x.username for x in o.participants.all()]
+		d["journey_checkpoints"] = [x.location.location_name for x in JourneyPoint.objects.filter(journey=o)]
 		d["disable"] = dis
 		lis.append(d)
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
@@ -706,6 +731,9 @@ def journey_creation_handler2(request):
 	for i,x in enumerate(checkpoints):
 		loc = LocationPoint.objects.get(location_name=x["checkpointA"],user=request.user)
 		JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
+	if(len(checkpoints)!=0):
+		loc = LocationPoint.objects.get(location_name=checkpoints[-1]["checkpointB"],user=request.user)
+		JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = len(checkpoints),journey=jrny)
 	checkpoints = []
 	return redirect("/user_journeys/")
 
@@ -770,7 +798,7 @@ def request_resolve_handler(request):
 		desc = request.user.username+" rejected the request by "+req.user_from.username
 		for par in jrny.participants.all():
 			Notification.objects.create(user_to=par,user_from=request.user,title="Journey add request rejected",description=desc,
-					notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5))
+					notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),resolved="Yes")
 		Notification.objects.create(user_to=req.user_from,user_from=request.user,title="Journey add request rejected",description=desc,
 			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
 			resolved="Yes")
@@ -817,7 +845,7 @@ class TripModifyForm(forms.Form):
 	def __init__(self, user, *args, **kwargs):
 		super(TripModifyForm, self).__init__(*args, **kwargs)
 		trips = Trip.objects.filter(participants__in=[user],posted=False)
-		self.fields["trip_name"] = forms.ChoiceField(choices=((x,x.trip_id) for x in trips))
+		self.fields["trip_name"] = forms.ChoiceField(choices=((x.trip_id,x.trip_id) for x in trips))
 		self.layout = Layout(Fieldset("Provide the trip here and select one of the options","trip_name"))
 
 # display1 = False
@@ -846,7 +874,17 @@ def user_trips(request):
 	display1 = len(locations)!=0
 	display2 = len(lis)!=0
 
-	return render(request,'info/trips.html', {"tform1":tform1,"tform2":tform2,"tmform":tmform,"display1":display1,"display2":display2,"lis":lis,"locations":locations,"req_lis":req_lis})
+	tlist = Trip.objects.filter(participants__in=[request.user])
+	for t in tlist:
+		# and (datetime.datetime.now()+datetime.timedelta(hours=5.5)-j.start_time.replace(tzinfo=utc)).days>10)
+		if(t.start_time<(datetime.datetime.now()+datetime.timedelta(hours=5.5)).replace(tzinfo=utc)):
+			if(t.posted):
+				t.closed = True
+				t.save()
+
+	return render(request,'info/trips.html', {"tform1":tform1,"tform2":tform2,"tmform":tmform,
+		"display1":display1,"display2":display2,"lis":lis,"locations":locations,
+		"req_lis":req_lis,"tlist":tlist})
 
 def trip_creation_handler1(request):
 	global locations
@@ -879,7 +917,8 @@ def trip_creation_handler2(request):
 	trip_info = request.POST.get("trip_info")
 
 	trp = Trip(trip_id=trip_name,start_time=parser.parse(trip_date),
-		source=source,cotravel_number=cotravel_number,duration=duration,expected_budget=expected_budget,trip_info=trip_info)
+		source=source,cotravel_number=cotravel_number,duration=duration,expected_budget=expected_budget,
+		trip_info=trip_info,leader=request.user)
 	trp.save()
 	trp.participants.add(request.user)
 
@@ -897,6 +936,7 @@ def trip_modify_handler(request):
 	if("search" in request.POST):
 		matching_tlist = match_trips(request.user,trp)
 	elif("post" in request.POST):
+		trp.leader=request.user
 		trp.posted=True
 		trp.save()
 		matching_tlist = []
@@ -905,29 +945,71 @@ def trip_modify_handler(request):
 		matching_tlist = []
 	return redirect("/user_trips/")
 
-# {u'checkpoints': [{u'location': {u'id': u'6',
-#                                  u'latitude': u'',
-#                                  u'location_name': u'IIT Delhi',
-#                                  u'location_type': u'Journey Point',
-#                                  u'longitude': u'',
-#                                  u'rating': u'2.5'},
-#                    u'point_id': 0,
-#                    u'transport': u'Cab'},
-#                   {u'location': {u'id': u'6',
-#                                  u'latitude': u'',
-#                                  u'location_name': u'IIT Delhi',
-#                                  u'location_type': u'Journey Point',
-#                                  u'longitude': u'',
-#                                  u'rating': u'2.5'},
-#                    u'point_id': 1,
-#                    u'transport': u'BUS'}],
-#  u'closed': False,
-#  u'cotravel_number': 10,
-#  u'journey_id': u'eighth',
-#  u'participants': [{u'email': u'',
-#                     u'first_name': u'Ankush',
-#                     u'id': 2,
-#                     u'last_name': u'Phulia',
-#                     u'username': u'ankush@gmail.com'}],
-#  u'posted': False,
-#  u'start_time': u'2018-05-02T22:15:00Z'}
+def trip_request_add_handler(request):
+	pprint(request.POST)
+	global matching_tlist
+	n = len(matching_tlist)
+	user = request.user
+	print(n)
+	index = 0
+	for i in range(n):
+		if("submit"+str(i) in request.POST):
+			index = i
+	print("index",index)
+	trp = matching_tlist[index][0]
+	description = "User "+user.username+" wants to be added to the "+trp.trip_id+" in which you are a participant."
+	title = "Trip Add request"
+	# for ut in trp.participants.all():
+	Notification.objects.create(user_to=trp.leader,user_from=user,title=title,description=description,
+			notif_type="Trip Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+			travel_id=trp.trip_id)
+	matching_jlist[index][1] = True
+	return redirect("/user_trips/")
+
+def request_resolve_handler(request):
+	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Trip Related",resolved="No")
+	print(request.POST)
+	index = 0
+	typ = 0
+	for i in range(len(req_lis)):
+		if("accept"+str(i) in request.POST):
+			index = i
+			typ = 1
+		elif("reject"+str(i) in request.POST):
+			index = i
+			typ = 0
+	print(index,typ)
+	req = req_lis[index]
+	if(typ==0):
+		req.resolved = "Request rejected by "+request.user.username
+		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+		trp_id = req.travel_id
+		print(trp_id)
+		trp = Trip.objects.get(participants__in=[request.user],trip_id=trp_id)
+
+		desc = request.user.username+" rejected the request by "+req.user_from.username
+		for par in trp.participants.all():
+			Notification.objects.create(user_to=par,user_from=request.user,title="Trip add request rejected",description=desc,
+					notif_type="Trip Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),resolved="Yes")
+		Notification.objects.create(user_to=req.user_from,user_from=request.user,title="Journey add request rejected",description=desc,
+			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+			resolved="Yes")
+	if(typ==1):
+		req.resolved = "Request accepted by "+request.user.username
+		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+		print(req.description.split())
+		trp_id = req.travel_id
+		print(trp_id)
+		trp = Trip.objects.get(participants__in=[request.user],trip_id=trp_id)
+
+		trp.participants.add(req.user_from)
+		desc = request.user.username+" accepted the request by "+req.user_from.username
+		for par in jrny.participants.all():
+			Notification.objects.create(user_to=par,user_from=request.user,title="Trip add request accepted",description=desc,
+					notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
+					resolved="Yes")
+	req.save()
+	return redirect("/user_trips/")
+
+def rating_handler(request):
+	return redirect("/user_trips/")

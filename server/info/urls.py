@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^trips/$', views.TripList.as_view()),
 
     url(r'^single_journey/(?P<journey_id>[ 0-9a-zA-Z_@.-]+)/$', views.JourneySingle.as_view()),
-    
+
     url(r'^create_journey/$', views.JourneyCreate.as_view()),
     url(r'^search_journey/$', views.JourneySearch.as_view()),
     url(r'^post_journey/$', views.JourneyPost.as_view()),
@@ -67,7 +67,7 @@ urlpatterns = [
     url(r'^user_trips/trip_create_handler1/$', views.trip_creation_handler1, name='trip_create_handler1'),
     url(r'^user_trips/trip_create_handler2/$', views.trip_creation_handler2, name='trip_create_handler2'),
     url(r'^user_trips/trip_modify_handler/$', views.trip_modify_handler, name='trip_modify_handler'),
-
+    url(r'^user_trips/rating_handler/$', views.rating_handler, name='rating_handler'),
     # url(r'^user_trips/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
     # url(r'^user_trips/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
 
