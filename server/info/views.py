@@ -186,8 +186,8 @@ class JourneySingle(APIView):
 			print(journey_date)
 			cotravel_number = validated_data.get("cotravel_number",2)
 			checkpoints = json.loads(validated_data.get("checkpoints"))
-			source = validated_data.get("source","")
-			destination = validated_data.get("source","")
+			# source = validated_data.get("source","")
+			# destination = validated_data.get("source","")
 			print(checkpoints)
 			jrny = Journey(journey_id=journey_id,start_time=journey_date,
 				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
@@ -281,31 +281,31 @@ class JourneyCreate(APIView):
 		validated_data = request.data
 		pprint(validated_data)
 		print(request.user)
+		# try:
+		user = request.user
 		try:
-			user = request.user
-			try:
-				journey_date = parser.parse(validated_data.get("start_time"))
-			except:
-				journey_date = datetime.datetime.now()+datetime.timedelta(hours=5.5)
-			print(journey_date)
-			journey_id = validated_data["journey_id"]
-			cotravel_number = validated_data.get("cotravel_number",2)
-			checkpoints = json.loads(validated_data.get("checkpoints"))
-			source = validated_data.get("source","")
-			destination = validated_data.get("source","")
-			print(checkpoints)
-			jrny = Journey(journey_id=journey_id,start_time=journey_date,
-				source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
-				cotravel_number=cotravel_number)
-
-			jrny.save()
-			jrny.participants.add(user)
-			for i,x in enumerate(checkpoints):
-				loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
-				JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
-			return Response(validated_data, status=status.HTTP_201_CREATED)
+			journey_date = parser.parse(validated_data.get("start_time"))
 		except:
-			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+			journey_date = datetime.datetime.now()+datetime.timedelta(hours=5.5)
+		print(journey_date)
+		journey_id = validated_data["journey_id"]
+		cotravel_number = validated_data.get("cotravel_number",2)
+		checkpoints = validated_data.get("checkpoints")
+		# source = validated_data.get("source","")
+		# destination = validated_data.get("source","")
+		print(checkpoints)
+		jrny = Journey(journey_id=journey_id,start_time=journey_date,
+			source=checkpoints[0]["location"]["location_name"],destination=checkpoints[-1]["location"]["location_name"],
+			cotravel_number=cotravel_number)
+		print("obtained the journey")
+		jrny.save()
+		jrny.participants.add(user)
+		for i,x in enumerate(checkpoints):
+			loc = LocationPoint.objects.get(location_name=x["location"]["location_name"],user=user)
+			JourneyPoint.objects.create(location=loc,transport=x["transport"],point_id = x["point_id"],journey=jrny)
+		return Response(validated_data, status=status.HTTP_201_CREATED)
+		# except:
+		# 	return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneySearch(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
@@ -905,3 +905,29 @@ def trip_modify_handler(request):
 		matching_tlist = []
 	return redirect("/user_trips/")
 
+# {u'checkpoints': [{u'location': {u'id': u'6',
+#                                  u'latitude': u'',
+#                                  u'location_name': u'IIT Delhi',
+#                                  u'location_type': u'Journey Point',
+#                                  u'longitude': u'',
+#                                  u'rating': u'2.5'},
+#                    u'point_id': 0,
+#                    u'transport': u'Cab'},
+#                   {u'location': {u'id': u'6',
+#                                  u'latitude': u'',
+#                                  u'location_name': u'IIT Delhi',
+#                                  u'location_type': u'Journey Point',
+#                                  u'longitude': u'',
+#                                  u'rating': u'2.5'},
+#                    u'point_id': 1,
+#                    u'transport': u'BUS'}],
+#  u'closed': False,
+#  u'cotravel_number': 10,
+#  u'journey_id': u'eighth',
+#  u'participants': [{u'email': u'',
+#                     u'first_name': u'Ankush',
+#                     u'id': 2,
+#                     u'last_name': u'Phulia',
+#                     u'username': u'ankush@gmail.com'}],
+#  u'posted': False,
+#  u'start_time': u'2018-05-02T22:15:00Z'}
