@@ -391,6 +391,7 @@ class JourneySearch(APIView):
 		validated_data = request.data
 		pprint(validated_data)
 		try:
+			user = request.user
 			journey_id = validated_data.get("journey_id")
 			jrny = Journey.objects.get(journey_id=journey_id)
 			matches = match_journeys(user,jrny)
