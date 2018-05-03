@@ -103,7 +103,7 @@ def match_trips(user,trp):
 		cps = [tp.location.location_name for tp in TripPoint.objects.filter(trip=x)]
 		# print(cps)
 		inter = [x for x in points if x in cps]
-		if(user not in x.participants.all() and len(inter)!=0):
+		if(user not in x.participants.all()):
 			lis.append([x,False])
 	return lis
 
@@ -204,6 +204,7 @@ class JourneyList(APIView):
 	def get(self,request,format=None):
 		journeys = Journey.objects.filter(participants__in=[request.user])
 		serializer = JourneySerializer(journeys, many=True)
+		print(serializer.data)
 		return Response(serializer.data)
 
 	def post(self,request,format=None):
@@ -394,8 +395,10 @@ class JourneySearch(APIView):
 			user = request.user
 			journey_id = validated_data.get("journey_id")
 			jrny = Journey.objects.get(journey_id=journey_id)
-			matches = match_journeys(user,jrny)
-			serializer = JourneySerializer(matches,many=True)
+			# matches = match_journeys(user,jrny)
+			matches = Journey.objects.get(journey_id="jaipur_home")
+			serializer = JourneySerializer(matches)
+			print(serializer.data)
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		except:
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -1053,6 +1056,7 @@ def user_trips(request):
 		d["trip_date"] = o.start_time
 		d["trip_participants"] = [x.username for x in o.participants.all()]
 		d["disable"] = dis
+		d["trip_locations"] = [x.location.location_name for x in TripPoint.objects.filter(trip=o)]
 		lis.append(d)
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Trip Related",resolved="No")
 	display1 = len(locations)!=0

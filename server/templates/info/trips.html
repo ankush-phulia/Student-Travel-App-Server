@@ -169,6 +169,7 @@
 						<th rowspan="2" style="text-align: center;">Trip name</th>
 						<th rowspan="2" style="text-align: center;">Date</th>
 						<th rowspan="2" style="text-align: center;">Participants</th>
+						<th rowspan="2" style="text-align: center;">Locations</th>
 						<th rowspan="2" style="text-align: center;">Actions</th>
 
 					  </tr>
@@ -179,11 +180,14 @@
 							<td style="text-align: center;">{{l.trip_name}}</td>
 							<td style="text-align: center;">{{l.trip_date}}</td>
 							<td style="text-align: center;">
-							<ul type="square">
 								{% for p in l.trip_participants%}
 									<li>{{p}}</li>
 								{% endfor %}
-							</ul>
+							</td>
+							<td style="text-align: center;">
+								{% for p in l.trip_locations%}
+									<li>{{p}}</li>
+								{% endfor %}
 							</td>
 							<td style="text-align: center;">
 								<button type="submit" name="submit{{forloop.counter0}}" {%if l.disable%}disabled="disabled"{% endif %}" class="btn">Request Add</button>
@@ -244,6 +248,8 @@
 			{% if t.closed %}
 				<div class="jumbotronC" >
 				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_info}}</a></p>
+
 				  <p style="font-size: 20px; margin-left: 20px;">Undertaken on  :  {{t.start_time}}</p>
 				  <div style="overflow: hidden; ">
 					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
@@ -264,6 +270,8 @@
 			{% elif t.posted %}
 				<div class="jumbotronA" >
 				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_info}}</a></p>
+
 				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{t.start_time}}</p>
 				  <div style="overflow: hidden; ">
 					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
@@ -279,6 +287,8 @@
 			{% else %}
 				<div class="jumbotronB" >
 				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_id}}</a></p>
+				  <p style="font-size: 25px; text-align: center;"><a href="#">{{t.trip_info}}</a></p>
+
 				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{t.start_time}}</p>
 				  <div style="overflow: hidden; ">
 					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{t.source}}</p>
