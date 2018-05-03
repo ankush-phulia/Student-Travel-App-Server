@@ -1,13 +1,14 @@
+# Django related imports
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.shortcuts import render, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-# from .forms import UserForm
 from django.forms.models import inlineformset_factory
 from django.core.exceptions import PermissionDenied
-# from django.http import HttpResponse, JsonResponse
+
+# Django REST related imports
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -19,10 +20,12 @@ from rest_framework.views import APIView
 from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
+# internal imports
 from info.models import *
 from info.serializers import *
 from info.permissions import IsTo
 
+# Utility imports
 from material import *
 from django_tables2 import RequestConfig
 import django_tables2 as tables
@@ -37,6 +40,8 @@ from django.utils import timezone
 import pytz
 
 utc=pytz.UTC
+
+#Some important infomrmation which is  used in the project
 # from mapwidgets.widgets import GooglePointFieldWidget, GoogleStaticOverlayMapWidget
 ##Custom permisionn won't work if we don't use GenericAPIView based classes. See the django rest_framework
 ## permissions documentation
@@ -59,7 +64,19 @@ utc=pytz.UTC
 # Link for the dashboard html
 # https://bootsnipp.com/snippets/featured/people-card-with-tabs
 
+###################################################################################################
+####################################  Meta logic functions ########################################
+###################################################################################################
+
 def match_journeys(user,jrny):
+	"""
+	given a user and his journey, match all the journeys which will be shown to the user in search result
+	Parametes:
+		user(User object) : One of the participants of the journey
+		jrny(Journey object) : The journey model object
+	Returns:
+		A list of matching journeys
+	"""
 	lis = []
 	for x in Journey.objects.filter(posted=True,closed=False):
 		print(jrny.destination)
@@ -68,9 +85,17 @@ def match_journeys(user,jrny):
 		if(user not in x.participants.all() and jrny.destination in cps):
 			lis.append([x,False])
 	return lis
-	# return [[x,False] for x in Journey.objects.filter(posted=True,closed=False) if user not in x.participants.all() and jrny.destination in x.]
+
 
 def match_trips(user,trp):
+	"""
+	given a user and his trip, match all the trips which will be shown to the user in search result
+	Parametes:
+		user(User object) : One of the participants of the journey
+		trp(Trip object) : The trip model object
+	Returns:
+		A list of matching trips
+	"""
 	lis = []
 	points = [tp.location.location_name for tp in TripPoint.objects.filter(trip=trp)]
 	for x in Trip.objects.filter(posted=True,closed=False):
@@ -82,7 +107,17 @@ def match_trips(user,trp):
 			lis.append([x,False])
 	return lis
 
+
+
+###################################################################################################
+####################################  REST API functions ##########################################
+###################################################################################################
+
 class UserInformation(APIView):
+	"""
+	Function to get user information.
+	Supported : GET
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 
 	def get(self,request,format=None):
@@ -91,6 +126,10 @@ class UserInformation(APIView):
 		return Response(serializer.data)
 
 class UserInformationUpdate(APIView):
+	"""
+	Function to update user information.
+	Supported : POST
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 
 	def post(self,request,format=None):
@@ -125,6 +164,10 @@ class UserInformationUpdate(APIView):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneyPointsList(APIView):
+	"""
+	Function to list all the journey points of the logged in user.
+	Supported : GET
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 
 	def get(self,request,format=None):
@@ -133,6 +176,10 @@ class JourneyPointsList(APIView):
 		return Response(serializer.data)
 
 class NotificationList(APIView):
+	"""
+	Function to get all the notificaions meant for the user.
+	Supported : GET, POST
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
 	def get(self,request,format=None):
@@ -149,6 +196,10 @@ class NotificationList(APIView):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneyList(APIView):
+	"""
+	Function to get a list of jounreys in which the user is a participant.
+	Supported : GET, POST
+	"""
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
 	def get(self,request,format=None):
 		journeys = Journey.objects.filter(participants__in=[request.user])
@@ -164,6 +215,10 @@ class JourneyList(APIView):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TripList(APIView):
+	"""
+	Function to get a list of trips in which the user is a participant.
+	Supported : GET, POST
+	"""
 	# authentication_classes = (SessionAuthentication, BasicAuthentication)
 	def get(self,request,format=None):
 		trips = Trip.objects.filter(participants__in=[request.user])
@@ -179,6 +234,10 @@ class TripList(APIView):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class JourneySingle(APIView):
+	"""
+	Parameterised function to get a journey specified by journey_id in which the user is a participant.
+	Supported : GET, POST
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 	def get_journey(self,journey_id,user):
 		try:
@@ -222,6 +281,10 @@ class JourneySingle(APIView):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserNotifications(APIView):
+	"""
+	Function to get all the user notifications of the user.
+	Supported : GET, DELETE
+	"""
 	permission_classes = (permissions.IsAuthenticated,)
 	def get_user_notifications(self,username):
 		try:
@@ -237,11 +300,6 @@ class UserNotifications(APIView):
 		notifs = self.get_user_notifications(username)
 		notifs.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
-
-class LoginForm(forms.Form):
-	email = forms.EmailField()
-	password = forms.CharField(widget=forms.PasswordInput)
-	keep_logged = forms.BooleanField(required=False, label="Keep me logged in")
 
 
 class MakeRequest(APIView):
@@ -371,19 +429,39 @@ class JourneyClose(APIView):
 		except:
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-###########################################################################################
+
+###################################################################################################
+####################################  Logistics related functions #################################
+###################################################################################################
+
+class LoginForm(forms.Form):
+	"""
+	Form for user login
+	"""
+	email = forms.EmailField()
+	password = forms.CharField(widget=forms.PasswordInput)
+	keep_logged = forms.BooleanField(required=False, label="Keep me logged in")
 
 def logout(request):
+	"""
+	View function to handle user logout
+	"""
 	ui = UserInfo.objects.get(user=request.user)
 	ui.last_visit = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 	print(ui.last_visit)
 	ui.save()
+	# Set the last logout time and redirect to builtin logout view
 	return redirect("/accounts/internal_logout/")
+
+
 @login_required
 def home(request):
 	return redirect("dashboard")
 
 class UserInfoTable(tables.Table):
+	"""
+	Table to store the user information to be displayed in HTML
+	"""
 	Username = tables.Column()
 	Email = tables.Column()
 	class Meta:
@@ -391,7 +469,11 @@ class UserInfoTable(tables.Table):
 
 @login_required
 def Dashboard(request):
+	"""
+	Function to populate the dashboard
+	"""
 	def take(x):
+		# handle not available information
 		if(x==""):
 			return "..."
 		else:
@@ -414,21 +496,24 @@ def Dashboard(request):
 	print("Data is ")
 	print(last_lg)
 	pprint(data)
-	# user_info = UserInfo.objects.get(user=user)
-	# image = b64encode(user_info.photo)
+	# photo is base64 encoded string
 	data["image"] = userinfo.photo
 	# print(user_info.photo.url)
-	# table = UserInfoTable(data)
-	# RequestConfig(request).configure(table)
 	return render(request, "info/dashboard.html",data)
 
 
 class UserProfileForm(forms.ModelForm):
+	"""
+	Form to take user information
+	"""
 	class Meta:
 		model = User
 		fields = ['first_name', 'last_name', 'email']
 
 class ModifyInfoForm(forms.Form):
+	"""
+	Form to take input from user to modify the user info
+	"""
 	email = forms.EmailField(required=False,label="Email Address")
 	# password = forms.CharField(widget=forms.PasswordInput,required=False)
 	# password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm password",required=False)
@@ -447,6 +532,9 @@ class ModifyInfoForm(forms.Form):
 
 @login_required
 def edit_user(request):
+	"""
+	Function to handle the POST of the user info update form
+	"""
 	user = request.user
 	userinfo = UserInfo.objects.get(user=user)
 	if(request.method=="GET"):
@@ -461,6 +549,7 @@ def edit_user(request):
 		if form.is_valid():
 
 			email = form.cleaned_data["email"]
+			# uncomment to allow user to modify the password as well
 			# password = form.cleaned_data["password"]
 			# password_confirm = form.cleaned_data["password_confirm"]
 			# if(password!=password_confirm):
@@ -500,6 +589,9 @@ def edit_user(request):
 
 
 class RegistrationForm(forms.Form):
+	"""
+	Form to take information when a user registers to the site
+	"""
 	username = forms.CharField(required=True)
 	email = forms.EmailField(label="Email Address",required=True)
 	password = forms.CharField(widget=forms.PasswordInput,required=True)
@@ -520,6 +612,9 @@ class RegistrationForm(forms.Form):
 
 
 def user_registration(request):
+	"""
+	Form to handle both the GET and the POST to the registration url
+	"""
 	print("came into func")
 	if(request.method=="GET"):
 		form = RegistrationForm()
@@ -528,6 +623,7 @@ def user_registration(request):
 	elif(request.method=="POST"):
 		form = RegistrationForm(request.POST)
 		if form.is_valid():
+			## we need to take cleaned data in order to deal with formatting issues
 			username = form.cleaned_data["username"]
 			if(User.objects.filter(username=username).exists()):
 				error= "Sorry. This username is already taken!"
@@ -538,17 +634,20 @@ def user_registration(request):
 			if(password!=password_confirm):
 				error= "Sorry. The passwords don't match!"
 				return render(request,'info/register.html', locals())
-
+			## get all the fields which the user may want to modify
 			first_name = form.cleaned_data["first_name"]
 			last_name = form.cleaned_data["last_name"]
 			gender = form.cleaned_data["gender"]
 			agree_toc = form.cleaned_data["agree_toc"]
 			bio = form.cleaned_data["bio"]
 			facebook_link = form.cleaned_data["facebook_link"]
+			## create a new user object
 			user = User.objects.create(username=username,email=email,first_name=first_name,last_name=last_name)
 			user.set_password(password)
 			user.save()
-			b64_img = base64.b64encode("index.jpeg".read())
+			## encode the file into base64 string
+			b64_img = base64.b64encode(open("info/index.jpeg","rb").read())
+			## create a new user info object
 			UserInfo.objects.create(user=user,sex=gender,bio=bio,facebook_link=facebook_link,
 				last_visit = datetime.datetime.now()+datetime.timedelta(hours=5.5),photo=b64_img)
 			return redirect("/accounts/login/")
@@ -557,6 +656,9 @@ def user_registration(request):
 			return render(request,'info/register.html', locals())
 
 class NotificationForm(forms.Form):
+	"""
+	Form to input a new notification from the user
+	"""
 	to_user = forms.CharField(required=True)
 	notification_type = forms.ChoiceField(choices=((None, ''), ('Logistics Related', 'Logistics Related'), ('Trip Related', 'Trip Related'), ('Journey Related', 'Journey Related')))
 	title = forms.CharField(required=True)
@@ -565,6 +667,9 @@ class NotificationForm(forms.Form):
 
 @login_required
 def user_notifications(request):
+	"""
+	Function to handle hte login of the user and populate the html on GET request
+	"""
 	notifs = Notification.objects.filter(user_to=request.user)
 	notifs_sent = Notification.objects.filter(user_from=request.user)
 	form = NotificationForm()
@@ -572,31 +677,44 @@ def user_notifications(request):
 
 @login_required
 def notification_create_handler(request):
+	"""
+	Create the new notification from the data obtained from POST request
+	"""
 	form = NotificationForm(request.POST)
 	pprint(form)
 	error = ""
+	## check if all the fields are properly specified by the user. If not, shoe the errors on the form
 	if form.is_valid():
 		user_to = form.cleaned_data["to_user"]
 		if(not(User.objects.filter(username=user_to).exists())):
-			# print("99999999999999999999999999",user_to)
 			error= "Sorry. The user to whom you are trying to send, doesn't exist!"
 			return render(request,'info/notifications.html', locals())
 		notif_type = form.cleaned_data["notification_type"]
 		title = form.cleaned_data["title"]
 		description = form.cleaned_data["description"]
 
+		## create the new notification
 		user = Notification.objects.create(user_from=request.user,user_to=User.objects.get(username=user_to),
 			notif_type=notif_type,title=title,description=description,creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5))
 		return redirect("/user_notifications/")
 	else:
+		## else show the errors and don't redirect
 		error = "The form is not valid. Some of the required fields not entered."
 		return render(request,'info/notifications.html', locals())
 	return redirect("/user_notifications/")
 
 
-
+###################################################################################################
+####################################  Location related functions ###################################
+###################################################################################################
 
 class LocationForm(forms.Form):
+	"""
+	Form to take the location from the user.
+	NOTE : the google maps api to provide the location name with javasript support is being called in the
+	html itself, uncomment soem of the below lines to disable google maps support
+	"""
+
 	# location_name = forms.CharField(required=True)
 	# location_name = forms.PointField(widget=GooglePointFieldWidget)
 	location_type = forms.ChoiceField(choices=((None, ''),('Trip Point', 'Trip Point'), ('Journey Point', 'Journey Point')))
@@ -607,6 +725,9 @@ class LocationForm2(forms.Form):
 
 @login_required
 def user_locations(request):
+	"""
+	Render the forms and the locations list in the two tabs
+	"""
 	locs = LocationPoint.objects.filter(user=request.user)
 	locations = [x.location_name for x in locs]
 	locations = json.dumps(locations)
@@ -616,6 +737,9 @@ def user_locations(request):
 
 @login_required
 def location_create_handler(request):
+	"""
+	Handle the submit of the location creation form
+	"""
 	pprint(request.POST)
 	pprint(request.FILES)
 	form = LocationForm(request.POST)
@@ -624,15 +748,23 @@ def location_create_handler(request):
 	if form.is_valid():
 		location_name = request.POST["location_name"]
 		location_type = form.cleaned_data["location_type"]
-		LocationPoint.objects.create(user=request.user,location_name=location_name,location_type=location_type)
+		## create a new location from POST data
+		LocationPoint.objects.get_or_create(user=request.user,location_name=location_name,location_type=location_type)
 	else:
 		error = "The form is not valid. Some of the required fields not entered."
 		return render(request,'info/locations.html', locals())
 	return redirect("/user_locations/")
 
-##########################################################################################################################################
+###################################################################################################
+####################################  Journey related functions ###################################
+###################################################################################################
+
 class JourneyCreationForm1(forms.Form):
+	"""
+	Form to take the checkpoints from the user
+	"""
 	travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train'),("Cab","Cab"),("Sleeper Train","Sleeper Train")),required=True)
+	## this init business required to dynamically populate the orm fields
 	def __init__(self, user, *args, **kwargs):
 		super(JourneyCreationForm1, self).__init__(*args, **kwargs)
 		jloc = LocationPoint.objects.filter(user=user,location_type="Journey Point")
@@ -641,18 +773,25 @@ class JourneyCreationForm1(forms.Form):
 		self.layout = Layout(Fieldset("Provide the journey checkpoints here",Row("location_1","travel_type","location_2")))
 
 class JourneyCreationForm2(forms.Form):
+	"""
+	Foem to take other journey related information from the user
+	"""
 	journey_name = forms.CharField(required=True)
 	travel_date = forms.DateTimeField(required=True)
 	cotravel_number = forms.IntegerField()
 	layout = Layout(Fieldset("Provide the journey information here","journey_name",Row("travel_date","cotravel_number")))
 
 class JourneyModifyForm(forms.Form):
+	"""
+	Form to provide options of non posted journeys and then take the action as input
+	"""
 	def __init__(self, user, *args, **kwargs):
 		super(JourneyModifyForm, self).__init__(*args, **kwargs)
 		jour = Journey.objects.filter(participants__in=[user],posted=False)
 		self.fields["journey_name"] = forms.ChoiceField(choices=((x,x.journey_id) for x in jour))
 		self.layout = Layout(Fieldset("Provide the journey here and select one of the options","journey_name"))
 
+## using global variable, better store in databse, will work for now
 # display1 = False
 display2 = False
 checkpoints = []
@@ -660,6 +799,11 @@ matching_jlist = []
 
 @login_required
 def user_journeys(request):
+	"""
+	Populate the entire forms and tables in the jounrys tab
+	NOTE: the usage of display1 and display2 is to hide the tables based on conditions
+	"""
+	## extremely necessary to make the golobal vaiables
 	# global display1
 	# global display2
 	global checkpoints
@@ -677,14 +821,17 @@ def user_journeys(request):
 		d["journey_checkpoints"] = [x.location.location_name for x in JourneyPoint.objects.filter(journey=o)]
 		d["disable"] = dis
 		lis.append(d)
+	## journey add request list
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	display1 = len(checkpoints)!=0
 	display2 = len(lis)!=0
+	## a list of locations to be displayed to the user on the google maps API
 	if(len(checkpoints)!=0):
 		locations = [x["checkpointA"] for x in checkpoints]
 		locations.append(checkpoints[-1]["checkpointB"])
 	else:
 		locations = []
+	## IMP to do this to get proper formatting in the javascript
 	locations = json.dumps(locations)
 	jlist = Journey.objects.filter(participants__in=[request.user])
 	for j in jlist:
@@ -698,6 +845,9 @@ def user_journeys(request):
 		"checkpoints":checkpoints,"req_lis":req_lis,"jlist":jlist,"locations":locations})
 
 def journey_creation_handler1(request):
+	"""
+	Function to handle the creation of new checkpoints
+	"""
 	global checkpoints
 	if("add_checkpoint" in request.POST):
 		pprint(request.POST)
@@ -714,6 +864,11 @@ def journey_creation_handler1(request):
 	return redirect("/user_journeys/")
 
 def journey_creation_handler2(request):
+	"""
+	function to handle the creation of new jounrey
+	Take the global checkpoints list and the data submitted in creation_form2 and then crete the new journey.
+	"""
+	##  function to handle the creation of new jounrey
 	global checkpoints
 	# form = JourneyCreationForm1(request.POST)
 	# if form.is_valid():
@@ -726,19 +881,24 @@ def journey_creation_handler2(request):
 		source=checkpoints[0]["checkpointA"],destination=checkpoints[-1]["checkpointB"],
 		cotravel_number=cotravel_number)
 	jrny.save()
+	## save the journey and the sole participant of the journey is the request user
 	jrny.participants.add(request.user)
 
+	## for each checkpoint create a new journe point with foreignkey to location and the journey objects
 	for i,x in enumerate(checkpoints):
-		loc = LocationPoint.objects.get(location_name=x["checkpointA"],user=request.user)
+		loc = LocationPoint.objects.get(location_name=x["checkpointA"],user=request.user,location_type="Journey Point")
 		JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = i,journey=jrny)
 	if(len(checkpoints)!=0):
-		loc = LocationPoint.objects.get(location_name=checkpoints[-1]["checkpointB"],user=request.user)
+		loc = LocationPoint.objects.get(location_name=checkpoints[-1]["checkpointB"],user=request.user,location_type="Journey Point")
 		JourneyPoint.objects.create(location=loc,transport=x["means"],point_id = len(checkpoints),journey=jrny)
 	checkpoints = []
 	return redirect("/user_journeys/")
 
 
 def journey_modify_handler(request):
+	"""
+	Function to make the modify view
+	"""
 	global matching_jlist
 	pprint(request.POST)
 	jrny = Journey.objects.get(participants__in=[request.user],journey_id=request.POST.get("journey_name"))
@@ -754,6 +914,9 @@ def journey_modify_handler(request):
 	return redirect("/user_journeys/")
 
 def request_add_handler(request):
+	"""
+	Function to handle the click on add me button
+	"""
 	pprint(request.POST)
 	global matching_jlist
 	n = len(matching_jlist)
@@ -775,6 +938,9 @@ def request_add_handler(request):
 	return redirect("/user_journeys/")
 
 def request_resolve_handler(request):
+	"""
+	Function to handle the resolve the request response by the user to whom the request is made
+	"""
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Journey Related",resolved="No")
 	print(request.POST)
 	index = 0
@@ -789,6 +955,8 @@ def request_resolve_handler(request):
 	print(index,typ)
 	req = req_lis[index]
 	if(typ==0):
+		## typ 0 means the request is rejected.
+		## create a new notification meant for all the partiipants and the request user
 		req.resolved = "Request rejected by "+request.user.username
 		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 		jrny_id = req.travel_id
@@ -803,6 +971,8 @@ def request_resolve_handler(request):
 			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
 			resolved="Yes")
 	if(typ==1):
+		## typ 1 means the request is accepted.
+		## create a new notification meant for all the partiipants and the request user
 		req.resolved = "Request accepted by "+request.user.username
 		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 		print(req.description.split())
@@ -820,9 +990,14 @@ def request_resolve_handler(request):
 	return redirect("/user_journeys/")
 
 
-##########################################################################################################################################
+###################################################################################################
+####################################  Trip related functions ######################################
+###################################################################################################
+
 class TripCreationForm1(forms.Form):
-	# travel_type = forms.ChoiceField(choices=(('Bus', 'Bus'), ('AC1 Train', 'AC1 Train'), ('AC2 Train', 'AC2 Train')),required=True)
+	"""
+	Form to take the trip sites from the user
+	"""
 	def __init__(self, user, *args, **kwargs):
 		super(TripCreationForm1, self).__init__(*args, **kwargs)
 		tloc = LocationPoint.objects.filter(user=user,location_type="Trip Point")
@@ -831,6 +1006,9 @@ class TripCreationForm1(forms.Form):
 		self.layout = Layout(Fieldset("Provide the trip locations here",Row("location")))
 
 class TripCreationForm2(forms.Form):
+	"""
+	Form to take other meta trip info from the user
+	"""
 	trip_name = forms.CharField(required=True)
 	travel_date = forms.DateTimeField(required=True)
 	cotravel_number = forms.IntegerField()
@@ -855,6 +1033,11 @@ matching_tlist = []
 
 @login_required
 def user_trips(request):
+	"""
+	Populate the entire forms and tables in the trips tab
+	NOTE: the usage of display1 and display2 is to hide the tables based on conditions
+	"""
+	## extremely necessary to make the golobal vaiables
 	# global display1
 	# global display2
 	global locations
@@ -887,25 +1070,24 @@ def user_trips(request):
 		"req_lis":req_lis,"tlist":tlist})
 
 def trip_creation_handler1(request):
+	"""
+	Function to handle the creation of new checkpoints
+	"""
 	global locations
 	if("add_checkpoint" in request.POST):
 		pprint(request.POST)
-		# form = JourneyCreationForm1(request.POST)
-		# if form.is_valid():
 		d = {}
 		d["location"] = request.POST.get("location")
-		# d["checkpointB"] = request.POST.get("location_2")
-		# d["means"] = request.POST.get("travel_type")
 		locations.append(d)
-		# else:
-		# 	error = "The form is not valid. Some of the required fields not entered."
-		# 	return render(request,'info/journeys.html', locals())
 	return redirect("/user_trips/")
 
 def trip_creation_handler2(request):
+	"""
+	function to handle the creation of new trip
+	Take the global checkpoints list and the data submitted in creation_form2 and then crete the new journey.
+	"""
+	##  function to handle the creation of new trip
 	global locations
-	# form = JourneyCreationForm1(request.POST)
-	# if form.is_valid():
 	pprint(locations)
 	pprint(request.POST)
 	trip_name = request.POST.get("trip_name")
@@ -921,15 +1103,18 @@ def trip_creation_handler2(request):
 		trip_info=trip_info,leader=request.user)
 	trp.save()
 	trp.participants.add(request.user)
-
+	## for each checkpoint create a new trip point with foreignkey to location and the trip objects
 	for i,x in enumerate(locations):
-		loc = LocationPoint.objects.get(location_name=x["location"],user=request.user)
+		loc = LocationPoint.objects.get(location_name=x["location"],user=request.user,location_type="Trip Point")
 		TripPoint.objects.create(location=loc,trip=trp)
 	locations = []
 	return redirect("/user_trips/")
 
 
 def trip_modify_handler(request):
+	"""
+	Function to make the modify view
+	"""
 	global matching_tlist
 	pprint(request.POST)
 	trp = Trip.objects.get(participants__in=[request.user],trip_id=request.POST.get("trip_name"))
@@ -946,6 +1131,9 @@ def trip_modify_handler(request):
 	return redirect("/user_trips/")
 
 def trip_request_add_handler(request):
+	"""
+	Function to make a new request to be added to the trip
+	"""
 	pprint(request.POST)
 	global matching_tlist
 	n = len(matching_tlist)
@@ -966,7 +1154,10 @@ def trip_request_add_handler(request):
 	matching_jlist[index][1] = True
 	return redirect("/user_trips/")
 
-def request_resolve_handler(request):
+def trip_request_resolve_handler(request):
+	"""
+	Function to handle the resolve the request response by the user to whom the request is made
+	"""
 	req_lis = Notification.objects.filter(user_to=request.user,notif_type="Trip Related",resolved="No")
 	print(request.POST)
 	index = 0
@@ -981,8 +1172,9 @@ def request_resolve_handler(request):
 	print(index,typ)
 	req = req_lis[index]
 	if(typ==0):
+		## typ 0 means the request is rejected.
+		## create a new notification meant for all the partiipants and the request user
 		req.resolved = "Request rejected by "+request.user.username
-		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 		trp_id = req.travel_id
 		print(trp_id)
 		trp = Trip.objects.get(participants__in=[request.user],trip_id=trp_id)
@@ -995,8 +1187,9 @@ def request_resolve_handler(request):
 			notif_type="Journey Related",creation_time=datetime.datetime.now()+datetime.timedelta(hours=5.5),
 			resolved="Yes")
 	if(typ==1):
+		## typ 1 means the request is rejected.
+		## create a new notification meant for all the partiipants and the request user
 		req.resolved = "Request accepted by "+request.user.username
-		# req.creation_time = datetime.datetime.now()+datetime.timedelta(hours=5.5)
 		print(req.description.split())
 		trp_id = req.travel_id
 		print(trp_id)

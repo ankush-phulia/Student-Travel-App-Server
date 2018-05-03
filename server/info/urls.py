@@ -68,8 +68,8 @@ urlpatterns = [
     url(r'^user_trips/trip_create_handler2/$', views.trip_creation_handler2, name='trip_create_handler2'),
     url(r'^user_trips/trip_modify_handler/$', views.trip_modify_handler, name='trip_modify_handler'),
     url(r'^user_trips/rating_handler/$', views.rating_handler, name='rating_handler'),
-    # url(r'^user_trips/request_add_handler/$', views.request_add_handler, name='request_add_handler'),
-    # url(r'^user_trips/request_resolve_handler/$', views.request_resolve_handler, name='request_resolve_handler'),
+    url(r'^user_trips/trip_request_add_handler/$', views.trip_request_add_handler, name='trip_request_add_handler'),
+    url(r'^user_trips/trip_request_resolve_handler/$', views.trip_request_resolve_handler, name='trip_request_resolve_handler'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns = format_suffix_patterns(urlpatterns)

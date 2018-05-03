@@ -276,13 +276,13 @@
 			{% if j.closed %}
 				<div class="jumbotronC" >
 				  <p style="font-size: 25px; text-align: center;"><a href="#">{{j.journey_id}}</a></p>
-				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{j.start_time}}</p>
+				  <p style="font-size: 20px; margin-left: 20px;">Started at :  {{j.start_time}}</p>
 				  <div style="overflow: hidden; ">
 					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{j.source}}</p>
 					  <p style="font-size: 20px; float: right; margin-right: 20px;">Destination :  {{j.destination}}</p>
 				  </div>
 				  <div style="margin-left: 20px;">
-				  <p style="font-size: 20px;">Travellers :	{% for p in j.participants.all%}
+				  <p style="font-size: 20px;">You travelled with :	{% for p in j.participants.all%}
 						<li>{{p.username}}</li>
 					{% endfor %}
 				  </p>
@@ -306,16 +306,10 @@
 			{% else %}
 				<div class="jumbotronB" >
 				  <p style="font-size: 25px; text-align: center;"><a href="#">{{j.journey_id}}</a></p>
-				  <p style="font-size: 20px; margin-left: 20px;">Tentative starting time :  {{j.start_time}}</p>
+				  <p style="font-size: 20px; margin-left: 20px;">Want to start at :  {{j.start_time}}</p>
 				  <div style="overflow: hidden; ">
 					  <p style="font-size: 20px; float: left; margin-left: 20px;">Source :  {{j.source}}</p>
 					  <p style="font-size: 20px; float: right; margin-right: 20px;">Destination :  {{j.destination}}</p>
-				  </div>
-				  <div style="margin-left: 20px;">
-				  <p style="font-size: 20px;">Travellers :	{% for p in j.participants.all%}
-						<li>{{p.username}}</li>
-					{% endfor %}
-				  </p>
 				  </div>
 				</div>
 			{% endif %}

@@ -160,7 +160,7 @@
 			</div>
 			</div>
 			{% if display2 %}
-			<form method="POST" action="request_add_handler/">
+			<form method="POST" action="/user_trips/trip_request_add_handler/">
 			{% csrf_token %}
 			<div class="table-responsive">
 				<table class="table table-hover table-striped table-bordered">
@@ -200,7 +200,7 @@
 		<div id="requestTab" class="tab-pane fade">
 			<h5>Here are the trip add requests made to you</h5>
 
-			<form method="POST" action="request_resolve_handler/">
+			<form method="POST" action="/user_trips/trip_request_resolve_handler/">
 			{% csrf_token %}
 			<div class="table-responsive">
 				<table class="table table-hover table-striped table-bordered">
