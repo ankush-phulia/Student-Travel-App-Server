@@ -9,10 +9,12 @@ import datetime
 from django.utils import timezone
 
 # Create your models here.
-NOTIFICATION_TYPES = [(x,x) for x in ["Logistics Related", "Trip Related", "Journey Related"]]
-SEX_TYPES = [(x,x) for x in ["Male","Female","Other"]]
-LOCATION_TYPES = [(x,x) for x in ["Journey Point","Trip Point"]]
-TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train","Cab","Sleeper Train"]]
+NOTIFICATION_TYPES = [(x, x) for x in ["Logistics Related",
+                                       "Trip Related", "Journey Related"]]
+SEX_TYPES = [(x, x) for x in ["Male", "Female", "Other"]]
+LOCATION_TYPES = [(x, x) for x in ["Journey Point", "Trip Point"]]
+TRANSPORT_TYPES = [(x, x) for x in ["Bus", "AC1 Train",
+                                    "AC2 Train", "Cab", "Sleeper Train"]]
 # class UserProfile(models.Model):
 # 	user = models.OneToOneField(User, related_name='user')
 # 	# photo = FileField(verbose_name=_("Profile Picture"),
@@ -25,102 +27,121 @@ TRANSPORT_TYPES = [(x,x) for x in ["Bus","AC1 Train","AC2 Train","Cab","Sleeper 
 # 	country = models.CharField(max_length=100, default='', blank=True)
 # 	organization = models.CharField(max_length=100, default='', blank=True)
 
-	# def create_profile(sender, **kwargs):
-	# 	user = kwargs["instance"]
-	# 	if kwargs["created"]:
-	# 		user_profile = UserProfile(user=user)
-	# 		user_profile.save()
-	# post_save.connect(create_profile, sender=User)
+# def create_profile(sender, **kwargs):
+# 	user = kwargs["instance"]
+# 	if kwargs["created"]:
+# 		user_profile = UserProfile(user=user)
+# 		user_profile.save()
+# post_save.connect(create_profile, sender=User)
 
 # class MyDateTimeField(models.DateTimeField):
 
 # 	def get_prep_value(self, value):
 # 		return datetime.datetime.strptime(value.strftime("yyyy-MM-dd HH:mm"),"yyyy-MM-dd HH:mm")
 
+
 class UserInfo(models.Model):
-	photo = models.TextField()
-	user = models.ForeignKey(User,on_delete=models.CASCADE)
-	sex = models.CharField(choices=SEX_TYPES,max_length=50)
-	facebook_link = models.CharField(max_length=200)
-	bio = models.TextField(default='', blank=True)
-	phone = models.CharField(max_length=20, blank=True, default='')
-	rating = models.CharField(max_length=20,default='3')
-	last_visit = models.DateTimeField()
-	def __str__(self):
-		return self.user.username
+    photo = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sex = models.CharField(choices=SEX_TYPES, max_length=50)
+    facebook_link = models.CharField(max_length=200)
+    bio = models.TextField(default='', blank=True)
+    phone = models.CharField(max_length=20, blank=True, default='')
+    rating = models.CharField(max_length=20, default='3')
+    last_visit = models.DateTimeField()
+
+    def __str__(self):
+        return self.user.username
+
 
 class Notification(models.Model):
-	user_from = models.ForeignKey(User, related_name="user_from", on_delete=models.CASCADE,null=True)
-	user_to = models.ForeignKey(User, related_name="user_to", on_delete=models.CASCADE)
-	title = models.TextField()
-	description = models.TextField()
-	notif_type = models.CharField(choices=NOTIFICATION_TYPES, default="Logistics Related", max_length=100)
-	creation_time = models.DateTimeField()
-	resolved = models.CharField(default="No",max_length=50)
-	travel_id = models.CharField(max_length=50,default="Going Home")
-	class Meta:
-		ordering = ("creation_time",)
-	def __str__(self):
-		return self.user_from.username+"->"+self.user_to.username+">>"+str(self.creation_time)
+    user_from = models.ForeignKey(
+        User, related_name="user_from", on_delete=models.CASCADE, null=True)
+    user_to = models.ForeignKey(
+        User, related_name="user_to", on_delete=models.CASCADE)
+    title = models.TextField()
+    description = models.TextField()
+    notif_type = models.CharField(
+        choices=NOTIFICATION_TYPES, default="Logistics Related", max_length=100)
+    creation_time = models.DateTimeField()
+    resolved = models.CharField(default="No", max_length=50)
+    travel_id = models.CharField(max_length=50, default="Going Home")
+
+    class Meta:
+        ordering = ("creation_time",)
+
+    def __str__(self):
+        return self.user_from.username+"->"+self.user_to.username+">>"+str(self.creation_time)
+
 
 class LocationPoint(models.Model):
-	user = models.ForeignKey(User)
-	location_name = models.CharField(max_length=100)
-	latitude = models.CharField(max_length=50)
-	longitude = models.CharField(max_length=50)
-	location_type = models.CharField(choices=LOCATION_TYPES,default="Journey Point",max_length=50)
-	rating = models.CharField(max_length=10,default="2.5")
-	def __str__(self):
-		return self.location_name
+    user = models.ForeignKey(User)
+    location_name = models.CharField(max_length=100)
+    latitude = models.CharField(max_length=50)
+    longitude = models.CharField(max_length=50)
+    location_type = models.CharField(
+        choices=LOCATION_TYPES, default="Journey Point", max_length=50)
+    rating = models.CharField(max_length=10, default="2.5")
 
+    def __str__(self):
+        return self.location_name
 
 
 class Journey(models.Model):
-	journey_id = models.CharField(max_length=50)
-	start_time = models.DateTimeField()
-	source  = models.CharField(max_length=100)
-	destination = models.CharField(max_length=100)
-	cotravel_number = models.CharField(max_length=10,default="1")
-	participants = models.ManyToManyField(User)
-	posted = models.BooleanField(default=False)
-	closed = models.BooleanField(default=False)
-	travel_id = models.CharField(max_length=50,default="Going Home")
-	def __str__(self):
-		return self.journey_id
+    journey_id = models.CharField(max_length=50)
+    start_time = models.DateTimeField()
+    source = models.CharField(max_length=100)
+    destination = models.CharField(max_length=100)
+    cotravel_number = models.CharField(max_length=10, default="1")
+    participants = models.ManyToManyField(User)
+    posted = models.BooleanField(default=False)
+    closed = models.BooleanField(default=False)
+    travel_id = models.CharField(max_length=50, default="Going Home")
+
+    def __str__(self):
+        return self.journey_id
+
 
 class JourneyPoint(models.Model):
-	location = models.ForeignKey(LocationPoint)
-	transport = models.CharField(choices=TRANSPORT_TYPES, default="BUS", max_length=100)
-	point_id = models.CharField(max_length=50)
-	journey = models.ForeignKey(Journey,related_name="checkpoints")
-	def __str__(self):
-		return self.location.location_name
+    location = models.ForeignKey(LocationPoint)
+    transport = models.CharField(
+        choices=TRANSPORT_TYPES, default="BUS", max_length=100)
+    point_id = models.CharField(max_length=50)
+    journey = models.ForeignKey(Journey, related_name="checkpoints")
+
+    def __str__(self):
+        return self.location.location_name
+
 
 class Attraction(models.Model):
-	attraction = models.CharField(max_length=100)
+    attraction = models.CharField(max_length=100)
+
 
 class Trip(models.Model):
-	trip_id = models.CharField(max_length=50)
-	start_time = models.DateTimeField()
-	source  = models.CharField(max_length=100,default="IIT Delhi")
-	duration = models.CharField(max_length=50,default="4")
-	expected_budget = models.CharField(max_length=50,default="5000")
-	trip_info = models.TextField()
+    trip_id = models.CharField(max_length=50)
+    start_time = models.DateTimeField()
+    source = models.CharField(max_length=100, default="IIT Delhi")
+    duration = models.CharField(max_length=50, default="4")
+    expected_budget = models.CharField(max_length=50, default="5000")
+    trip_info = models.TextField()
 
-	cotravel_number = models.CharField(max_length=10,default="2")
-	participants = models.ManyToManyField(User)
-	leader = models.ForeignKey(User,related_name="leader")
-	attractions = models.ManyToManyField(Attraction)
-	posted = models.BooleanField(default=False)
-	closed = models.BooleanField(default=False)
+    cotravel_number = models.CharField(max_length=10, default="2")
+    participants = models.ManyToManyField(User)
+    leader = models.ForeignKey(User, related_name="leader")
+    attractions = models.ManyToManyField(Attraction)
+    posted = models.BooleanField(default=False)
+    closed = models.BooleanField(default=False)
 
-	rating  = models.CharField(max_length=10,default="2.5")
-	def __str__(self):
-		return self.trip_id
+    rating = models.CharField(max_length=10, default="2.5")
+
+    def __str__(self):
+        return self.trip_id
+
 
 class TripPoint(models.Model):
-	location = models.ForeignKey(LocationPoint)
+    location = models.ForeignKey(LocationPoint)
 
-	trip = models.ForeignKey(Trip,related_name="checkpoints")
-	def __str__(self):
-		return self.location.location_name
+    trip = models.ForeignKey(Trip, related_name="checkpoints")
+
+    def __str__(self):
+        return self.location.location_name

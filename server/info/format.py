@@ -37,8 +37,11 @@ x = """
         "destination": "IIT Delhi",
         "journey_id": "Winter_Vacations"
     }"""
+
+
 def convert(x):
-    y = x.replace("\n","").replace(" ","")
+    y = x.replace("\n", "").replace(" ", "")
     print(y)
+
 
 convert(x)

@@ -10,4 +10,3 @@ admin.site.register(Journey)
 admin.site.register(Attraction)
 admin.site.register(Trip)
 admin.site.register(TripPoint)
-
